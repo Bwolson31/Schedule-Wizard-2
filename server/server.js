@@ -22,11 +22,14 @@ app.use(express.urlencoded({ extended: false }));
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' ? 'https://schedule-wizard-2.onrender.com' : 'http://localhost:3000',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
-  credentials: true,
-};
+    origin: ['http://localhost:3000', 'https://schedule-wizard-2.onrender.com'],
+    credentials: true, // to support cookies
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: ['Content-Type', 'Authorization']
+  };
+  
+  app.use(cors(corsOptions));
+  
 
 app.use(cors(corsOptions));
 
