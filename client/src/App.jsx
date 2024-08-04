@@ -17,9 +17,8 @@ import { UserProvider } from './contexts/UserContext.jsx';
 
 // Construct our main GraphQL API endpoint
 const httpLink = createHttpLink({
-  uri: 'http://localhost:3003/graphql',
-});
-
+    uri: process.env.REACT_APP_GRAPHQL_API || 'http://localhost:3003/graphql',
+  });
 // Construct request middleware that will attach the JWT token to every request as an `authorization` header
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('id_token');
