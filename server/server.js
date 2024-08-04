@@ -20,11 +20,12 @@ const server = new ApolloServer({
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:3000', // Your client-side URL
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
-  credentials: true,
-};
+    origin: ['http://localhost:3000', 'https://schedule-wizard-2.onrender.com'], // Add your production URL
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
+    credentials: true,
+  };
+  
 
 // Start the Apollo server
 const startApolloServer = async () => {
@@ -49,7 +50,7 @@ const startApolloServer = async () => {
   db.once('open', () => {
     app.listen(PORT, () => {
       console.log(`API server running on port ${PORT}!`);
-      console.log(`Use GraphQL at http://localhost:${PORT}/graphql`);
+      console.log(`Use GraphQL at http://${process.env.NODE_ENV === 'production' ? 'schedule-wizard-2-.onrender.com' : 'localhost'}:${PORT}/graphql`);
     });
   });
 };
