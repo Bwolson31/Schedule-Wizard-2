@@ -17,11 +17,11 @@ import { UserProvider } from './contexts/UserContext.jsx';
 
 // Construct our main GraphQL API endpoint
 const httpLink = createHttpLink({
-  uri: process.env.REACT_APP_GRAPHQL_API,  // Ensure this is using your environment variable
+  uri: process.env.REACT_APP_GRAPHQL_URL,  // Ensure this is using your environment variable
 });
 
 // Log the API URI to see what value is being used in production
-console.log("API URI: ", process.env.REACT_APP_GRAPHQL_API);
+console.log("API URI: ", process.env.REACT_APP_GRAPHQL_URL);
 
 // Construct request middleware that will attach the JWT token to every request as an `authorization` header
 const authLink = setContext((_, { headers }) => {
