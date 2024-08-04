@@ -4,7 +4,7 @@ const secret = 'mysecretssshhhhhhh';
 const expiration = '2h';
 
 module.exports = {
-  authMiddleware: function ({ req }) {
+  authMiddleware: function ({ req, res, next }) {
     let token = req.body.token || req.query.token || req.headers.authorization;
 
     if (req.headers.authorization) {
@@ -13,17 +13,18 @@ module.exports = {
 
     if (!token) {
       console.log('No token found');
-      return req;
+
+      return res.status(401).send({ message: "No token provided, authorization denied." });
     }
 
     try {
       const { data } = jwt.verify(token, secret, { maxAge: expiration });
       req.user = data;
-    } catch {
-      console.log('Invalid token');
+      next(); 
+    } catch (error) {
+      console.log('Invalid token', error);
+      return res.status(401).send({ message: "Invalid token." });
     }
-
-    return req;
   },
   signToken: function ({ email, username, _id }) {
     const payload = { email, username, _id };
