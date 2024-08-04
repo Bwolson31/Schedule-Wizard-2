@@ -20,7 +20,7 @@ const server = new ApolloServer({
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3000', 'https://schedule-wizard-2.onrender.com'], // Add your production URL
+    origin: ['http://localhost:3000', 'https://schedule-wizard-2.onrender.com'], 
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
     credentials: true,
