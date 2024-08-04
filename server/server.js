@@ -4,7 +4,11 @@ const { expressMiddleware } = require('@apollo/server/express4');
 const path = require('path');
 const cors = require('cors');
 const { authMiddleware } = require('./auth/auth');
-require('dotenv').config();
+
+// Configuring dotenv to load different .env files based on NODE_ENV
+require('dotenv').config({
+  path: `./.env.${process.env.NODE_ENV}`
+});
 
 const { typeDefs, resolvers } = require('./schemas');
 const db = require('./config/connection');
@@ -17,21 +21,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // CORS configuration
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://schedule-wizard-2.onrender.com'],
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' ? 'https://schedule-wizard-2.onrender.com' : 'http://localhost:3000',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Create a new instance of an Apollo server with the GraphQL schema
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => {
-    // Ensure the request object is available for authMiddleware
-    return { req: authMiddleware(req) };
-  },
+  context: ({ req }) => ({
+    user: authMiddleware(req)
+  }),
 });
 
 // Start the Apollo server and set up middleware
@@ -41,6 +46,7 @@ async function startServer() {
   // Apply the Apollo GraphQL middleware
   app.use('/graphql', expressMiddleware(server));
 
+  // Serve static files and SPA on production environment
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));
     app.get('*', (req, res) => {
@@ -48,6 +54,7 @@ async function startServer() {
     });
   }
 
+  // Database connection and server start
   db.once('open', () => {
     app.listen(PORT, () => {
       console.log(`API server running on port ${PORT}!`);
@@ -57,5 +64,6 @@ async function startServer() {
 }
 
 startServer();
+
 
 
