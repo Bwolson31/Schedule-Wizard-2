@@ -51,6 +51,7 @@ const startApolloServer = async () => {
     app.listen(PORT, () => {
       console.log(`API server running on port ${PORT}!`);
       console.log(`Use GraphQL at https://${process.env.NODE_ENV === 'production' ? 'schedule-wizard-2.onrender.com' : 'localhost'}:${PORT}/graphql`);
+      console.log('API URL:', process.env.MONGODB_URI);
     });
   });
 };
