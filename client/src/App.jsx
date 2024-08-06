@@ -26,6 +26,7 @@ console.log("API URI: ", process.env.REACT_APP_GRAPHQL_URL);
 // Construct request middleware that will attach the JWT token to every request as an `authorization` header
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('id_token');
+  console.log("Sending token:", token)
   return {
     headers: {
       ...headers,
