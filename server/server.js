@@ -3,7 +3,11 @@ const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
 const path = require('path');
 const cors = require('cors');
-const { authMiddleware } = require('./auth/auth');
+const jwt = require('jsonwebtoken');
+
+// JWT secret and expiration should be securely stored and accessed
+const secret = 'mysecretssshhhhhhh'; // Consider moving this to environment variables
+const expiration = '2h';
 
 // Configuring dotenv to load different .env files based on NODE_ENV
 require('dotenv').config({
@@ -26,10 +30,7 @@ const corsOptions = {
     credentials: true, // to support cookies
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization']
-  };
-  
-  app.use(cors(corsOptions));
-  
+};
 
 app.use(cors(corsOptions));
 
@@ -37,9 +38,19 @@ app.use(cors(corsOptions));
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => ({
-    user: authMiddleware(req)
-  }),
+  context: async ({ req }) => {
+    let authToken = null;
+    let currentUser = null;
+    try {
+      authToken = req.headers.authorization ? req.headers.authorization.split(' ').pop().trim() : null;
+      if (authToken) {
+        currentUser = jwt.verify(authToken, secret, { maxAge: expiration }).data;
+      }
+    } catch (e) {
+      console.warn(`Unable to authenticate using auth token: ${authToken}`);
+    }
+    return { currentUser };
+  },
 });
 
 // Start the Apollo server and set up middleware
@@ -67,6 +78,3 @@ async function startServer() {
 }
 
 startServer();
-
-
-
