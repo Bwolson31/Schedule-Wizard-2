@@ -13,7 +13,6 @@ module.exports = {
 
     if (!token) {
       console.log('No token found');
-
       return res.status(401).send({ message: "No token provided, authorization denied." });
     }
 
@@ -26,6 +25,7 @@ module.exports = {
       return res.status(401).send({ message: "Invalid token." });
     }
   },
+
   signToken: function ({ email, username, _id }) {
     const payload = { email, username, _id };
     return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
