@@ -28,12 +28,17 @@ class AuthService {
     try {
       const decoded = decode(token);
       if (decoded.exp < Date.now() / 1000) {
+        localStorage.removeItem('id_token');  
         return true;
-      } else return false;
+      } else {
+        return false;
+      }
     } catch (err) {
-      return false;
+      console.error('Error decoding token:', err);
+      return true; 
     }
   }
+  
 
   getToken() {
     return localStorage.getItem('id_token');
