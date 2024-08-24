@@ -33,10 +33,17 @@ const Signup = () => {
         variables: { ...userFormData },
       });
 
-      Auth.login(data.addUser.token);
-      navigate('/profile'); // Navigate to the profile page after successful signup
+      console.log('Signup mutation response:', data);
+      if (data && data.addUser && data.addUser.token) {
+        Auth.login(data.addUser.token); 
+        console.log("Token stored successfully:", localStorage.getItem('id_token'));
+        navigate('/profile');
+      } else {
+        console.error('No token received');
+        setShowAlert(true);
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Signup error:', error);
       setShowAlert(true);
     }
 

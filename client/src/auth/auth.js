@@ -2,31 +2,27 @@ import decode from 'jwt-decode';
 
 class AuthService {
   getProfile() {
-    return decode(this.getToken());
+    const token = this.getToken();
+    if (token) {
+      return decode(token);
+    }
+    return null;
   }
 
   loggedIn() {
     const token = this.getToken();
-    return !!token && !this.isTokenExpired(token); // handwaiving here
-    // If there is a token and it's not expired, return `true`
-    // return token && !this.isTokenExpired(token) ? true : false;
+    const isExpired = token ? this.isTokenExpired(token) : true;
+    console.log("Token valid: ", !isExpired);
+    return !!token && !isExpired;
   }
-
-  // isTokenExpired(token) {
-  //   // Decode the token to get its expiration time that was set by the server
-  //   const decoded = decode(token);
-  //   // If the expiration time is less than the current time (in seconds), the token is expired and we return `true`
-  //   if (decoded.exp < Date.now() / 1000) {
-  //     localStorage.removeItem('id_token');
-  //     return true;
-  //   }
-  //   // If token hasn't passed its expiration time, return `false`
-  //   return false;
-  // }
 
   isTokenExpired(token) {
     try {
       const decoded = decode(token);
+      console.log("Decoded token:", decoded);
+      console.log("Token expiry timestamp:", decoded.exp);
+      console.log("Current timestamp:", Date.now() / 1000);
+
       if (decoded.exp < Date.now() / 1000) {
         localStorage.removeItem('id_token');  
         return true;
@@ -35,24 +31,37 @@ class AuthService {
       }
     } catch (err) {
       console.error('Error decoding token:', err);
-      return true; 
+      return true;
     }
   }
-  
 
   getToken() {
-    return localStorage.getItem('id_token');
+    const token = localStorage.getItem('id_token');
+    console.log("Retrieving token from storage:", token);
+    return token;
   }
 
   login(idToken) {
-    localStorage.setItem('id_token', idToken);
-    window.location.assign('/');
+    try {
+      console.log("Logging in, setting token:", idToken);
+      localStorage.setItem('id_token', idToken);
+      const storedToken = localStorage.getItem('id_token');
+      console.log("Token set in storage:", storedToken);
+      if (storedToken !== idToken) {
+        console.error("Token storage failed!");
+      }
+      window.location.assign('/');
+    } catch (error) {
+      console.error("Error storing token:", error);
+    }
   }
 
   logout() {
+    console.log("Logging out, removing token.");
     localStorage.removeItem('id_token');
     window.location.assign('/');
   }
 }
 
 export default new AuthService();
+

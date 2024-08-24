@@ -1,56 +1,84 @@
 const mongoose = require('mongoose');
-const { User, Schedule, Activity } = require('../models');
-require('dotenv').config(); 
+const bcrypt = require('bcrypt');
+const { User, Schedule, Activity, Comment } = require('../models/index'); 
+require('dotenv').config({
+    path: `.env.${process.env.NODE_ENV}`
+  });
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/scheduleDatabase', {
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/scheduleDatabase2', {
   useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log("Connected to MongoDB for seeding"))
-  .catch(err => console.error("Could not connect to MongoDB for seeding:", err));
+  useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB connected successfully!'))
+.catch(err => console.error('MongoDB connection error:', err));
 
-const seedUsers = [
-    { username: 'alice', email: 'alice@example.com', password: 'password123' },
-    { username: 'bob', email: 'bob@example.com', password: 'password123' }
-];
-
-const seedSchedules = [
-    { title: 'Alice’s Workout Plan', owner: null },
-    { title: 'Bob’s Work Schedule', owner: null }
-];
-
-const seedActivities = [
-  { 
-      title: 'Gym', 
-      startTime: new Date('2022-01-01T07:00:00Z'), 
-      endTime: new Date('2022-01-01T08:00:00Z'), 
-      description: 'Leg day!' 
+const users = [
+  {
+    username: 'johnDoe',
+    email: 'john@example.com',
+    password: bcrypt.hashSync('123456', 10),
   },
-  { 
-      title: 'Office', 
-      startTime: new Date('2022-01-01T09:00:00Z'), 
-      endTime: new Date('2022-01-01T17:00:00Z'), 
-      description: 'Work at office' 
+  {
+    username: 'janeDoe',
+    email: 'jane@example.com',
+    password: bcrypt.hashSync('123456', 10),
   }
 ];
 
+const schedules = [
+  {
+    title: 'Workout Routine',
+    activities: [],
+    ratings: [],
+    // comments: []
+  }
+];
+
+const activities = [
+    {
+      title: 'Morning Run',
+      description: 'A 30-minute light run.',
+      startTime: new Date(`2024-01-01T07:00:00`), 
+      endTime: new Date(`2024-01-01T07:30:00`), 
+      day: 'Monday'
+    }
+  ];
+
+
 
 const seedDB = async () => {
-    await mongoose.connection.dropDatabase();
+  await User.deleteMany({});
+  await Schedule.deleteMany({});
+  await Activity.deleteMany({});
+//   await Comment.deleteMany({});
 
-    const createdUsers = await User.insertMany(seedUsers);
-    seedSchedules[0].owner = createdUsers[0]._id;
-    seedSchedules[1].owner = createdUsers[1]._id;
+  const createdUsers = await User.insertMany(users);
+  const user1 = createdUsers[0]._id;
+  const user2 = createdUsers[1]._id;
 
-    const createdSchedules = await Schedule.insertMany(seedSchedules);
+  schedules.forEach(schedule => {
+    schedule.user = user1; // Assign first user as the creator
+  });
 
-    seedActivities[0].schedule = createdSchedules[0]._id; 
-    seedActivities[1].schedule = createdSchedules[1]._id;
+  const createdSchedules = await Schedule.insertMany(schedules);
 
-    await Activity.insertMany(seedActivities);
+  activities.forEach(activity => {
+    activity.schedule = createdSchedules[0]._id; // Assign to the first schedule
+  });
 
-    console.log('Database seeded!');
+  const createdActivities = await Activity.insertMany(activities);
+
+  // Update schedule with activities
+  await Schedule.findByIdAndUpdate(createdSchedules[0]._id, {
+    $push: { activities: { $each: createdActivities.map(a => a._id) } }
+  });
+
+
+
+  console.log('Database seeded!');
 };
 
 seedDB().then(() => {
-    mongoose.connection.close();
+  mongoose.connection.close();
 });

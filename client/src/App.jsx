@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import {
   ApolloClient,
@@ -14,25 +14,26 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { UserProvider } from './contexts/UserContext.jsx';
+import AuthService from './auth/auth.js';
 
-// Construct our main GraphQL API endpoint
 const httpLink = createHttpLink({
-  uri: process.env.REACT_APP_GRAPHQL_URL || 'http://localhost:3003/graphql',
+  uri: import.meta.env.VITE_APP_GRAPHQL_URL || 'http://localhost:3003/graphql',
 });
 
-console.log("API URI: ", process.env.REACT_APP_GRAPHQL_URL);
+
+console.log("API URI: ", import.meta.env.VITE_APP_GRAPHQL_URL);
 
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('id_token');
-  console.log("Sending token:", token);
+  console.log("Client sending token:", token);
+
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : '',
+      authorization: token ? `Bearer ${token}` : "",
     },
   };
 });
-
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
@@ -40,6 +41,10 @@ const client = new ApolloClient({
 });
 
 function App() {
+  useEffect(() => {
+    console.log("Is the user logged in?", AuthService.loggedIn());
+  }, []);
+
   return (
     <ApolloProvider client={client}>
       <UserProvider> {/* Wrap the entire application with UserProvider */}

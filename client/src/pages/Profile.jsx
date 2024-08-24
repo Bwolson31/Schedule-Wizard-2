@@ -1,5 +1,5 @@
 import './Profile.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { Container, Row, Col, Card, ListGroup, Button, Alert, ButtonGroup } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -8,18 +8,29 @@ import { DELETE_SCHEDULE, REMOVE_ACTIVITY, UPDATE_ACTIVITY } from '../graphql/mu
 import AddActivityButton from '../components/schedules/AddActivityButton';
 import UpdateActivityButton from '../components/schedules/UpdateActivityButton';
 import RemoveActivityButton from '../components/schedules/RemoveActivityButton';
+import AuthService from '../auth/auth.js';
 
 function Profile() {
-    // State variables for sorting criteria
+    const [userProfile, setUserProfile] = useState(null);
+
+    useEffect(() => {
+        if (AuthService.loggedIn()) {
+            const profile = AuthService.getProfile();
+            setUserProfile(profile);
+            console.log("Profile retrieved in Profile component:", profile);
+        } else {
+            console.log("User is not logged in.");
+        }
+    }, []);
+
     const [sortBy, setSortBy] = useState('CREATED_AT');
     const [sortOrder, setSortOrder] = useState('DESC');
 
-    // Fetch user data with sorting variables
     const { loading, error, data, refetch } = useQuery(ME, {
         variables: { sortBy, sortOrder },
+        skip: !userProfile, // Skip the query if the user is not logged in
     });
 
-    // Define mutations with refetching on completion
     const [deleteSchedule] = useMutation(DELETE_SCHEDULE, {
         onCompleted: () => refetch(),
         onError: (error) => console.error('Error deleting schedule:', error)
@@ -33,18 +44,18 @@ function Profile() {
         onError: (error) => console.error('Error updating activity:', error)
     });
 
-    // State variables for notification
     const [showNotification, setShowNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState('');
 
-    // Display loading message if data is being fetched
+    if (!userProfile) {
+        return <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>Please log in to view your profile.</Container>;
+    }
+
     if (loading) return <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>Loading...</Container>;
-    // Display error message if an error occurred
     if (error) return <Container className="mt-5"><Alert variant="danger">Error: {error.message}</Alert></Container>;
 
     const userData = data?.me || {};
 
-    // Handlers for deleting schedule and activities
     const handleDeleteSchedule = async (scheduleId) => {
         await deleteSchedule({ variables: { scheduleId, userId: userData._id } });
     };
@@ -57,7 +68,6 @@ function Profile() {
         await updateActivity({ variables: { activityId, title, description } });
     };
 
-    // Handler for changing sort criteria
     const handleSortChange = (sortBy, sortOrder) => {
         console.log('Changing sort to', sortBy, sortOrder);
         setSortBy(sortBy);
@@ -151,7 +161,3 @@ function Profile() {
 }
 
 export default Profile;
-
-
-
-

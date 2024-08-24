@@ -2,15 +2,22 @@ const { User, Schedule, Activity, Rating } = require('../models');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { signToken, AuthenticationError } = require('../auth/auth');
+const { signToken } = require('../auth/auth');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Custom error class to replace AuthenticationError temporarily
+class CustomAuthError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'CustomAuthError';
+    this.code = 'AUTHENTICATION_ERROR';
+  }
+}
 
 const resolvers = {
   Query: {
-    // Fetch all users
     users: async () => User.find(),
 
-    // Fetch a single user by username with schedules and activities
     user: async (parent, { username }) => {
       return User.findOne({ username }).populate({
         path: 'schedules',
@@ -20,13 +27,10 @@ const resolvers = {
       });
     },
 
-    // Fetch the logged-in user's data with schedules, including sorting ability
     me: async (parent, { sortBy, sortOrder }, context) => {
-      console.log('Received sortBy:', sortBy);
-      console.log('Received sortOrder:', sortOrder);
-
+      console.log('Resolver - Context', context.user); 
       if (!context.user) {
-        throw new Error('You must be logged in.');
+        throw new CustomAuthError('You must be logged in to perform this action.');
       }
 
       const sort = {};
@@ -43,22 +47,11 @@ const resolvers = {
         },
       });
 
-      console.log('User schedules:', user.schedules);
+      console.log('User data fetched:', user);
 
       return user;
     },
 
-    // Fetch all schedules with sorting ability and  activities
-    getSchedules: async (parent, { sortBy, sortOrder }) => {
-      let sort = {};
-      if (sortBy && sortOrder) {
-        sort[sortBy.toLowerCase()] = sortOrder === 'ASC' ? 1 : -1;
-      }
-
-      return Schedule.find().populate('activities').sort(sort);
-    },
-
-    // Fetch all schedules with sorting capability and populated activities and ratings
     getSchedules: async (_, { sortBy = 'CREATED_AT', sortOrder = 'DESC' }) => {
       let sortField;
       switch (sortBy) {
@@ -87,7 +80,6 @@ const resolvers = {
       return schedules;
     },
 
-    // Fetch a single schedule by ID with activities, comments (TODO), and ratings
     getOneSchedule: async (parent, { scheduleId }) => {
       try {
         const schedule = await Schedule.findById(scheduleId)
@@ -105,7 +97,6 @@ const resolvers = {
       }
     },
 
-    // Search users by username or email (case-insensitve)
     searchUsers: async (_, { term }) => {
       return User.find({
         $or: [
@@ -115,7 +106,6 @@ const resolvers = {
       });
     },
 
-    // Search schedules by title (case-insensitive) and activities and ratings
     searchSchedules: async (_, { term }) => {
       const schedules = await Schedule.find({
         title: { $regex: new RegExp(term, 'i') },
@@ -127,20 +117,18 @@ const resolvers = {
       return schedules;
     },
 
-    // Check if the logged-in user has rated a specific schedule
     checkUserRating: async (parent, { scheduleId }, context) => {
       if (!context.user) {
-        throw new AuthenticationError('You must be logged in to check your rating.');
+        throw new CustomAuthError('You must be logged in to check your rating.');
       }
-  
+
       const rating = await Rating.findOne({ user: context.user._id, schedule: scheduleId }).populate('user');
       return rating;
     },
 
-    // Fetch the logged-in user's rated schedules with optional sorting
     getRatedSchedules: async (parent, { sortBy, sortOrder }, context) => {
       if (!context.user) {
-        throw new Error('You must be logged in.');
+        throw new CustomAuthError('You must be logged in to perform this action.');
       }
 
       let sort = {};
@@ -167,50 +155,46 @@ const resolvers = {
       }));
     },
   },
-    
+
   Mutation: {
-    // Add a new user with unique email and hashed password
     addUser: async (parent, { username, email, password }) => {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        throw new Error('A user with this email already exists.');
-      }
       const user = await User.create({ username, email, password });
-      const token = signToken(user);
+      const token = signToken(user); // Ensure signToken is correctly implemented
       return { token, user };
     },
 
-    // Log in a user by email and password
-    login: async (parent, { email, password }) => {
+    login: async (parent, { email, password }, context) => {
       const user = await User.findOne({ email });
       if (!user) {
-        throw AuthenticationError;
+        throw new CustomAuthError('No user found with this email address');
       }
+
       const correctPw = await user.isCorrectPassword(password);
+
       if (!correctPw) {
-        throw AuthenticationError;
+        throw new CustomAuthError('Incorrect credentials');
       }
-      const token = signToken(user);
+
+      const token = signToken(user); 
       return { token, user };
     },
 
-    // Add or update a rating for a schedule by user
     addRating: async (parent, { scheduleId, rating }, context) => {
       if (!context.user) {
-        throw new AuthenticationError('You must be logged in to rate schedules.');
+        throw new CustomAuthError('You must be logged in to rate schedules.');
       }
-    
+
       console.log(`Received request to rate schedule ${scheduleId} with rating ${rating} by user ${context.user._id}`);
-    
+
       try {
         const existingRating = await Rating.findOne({ user: context.user._id, schedule: scheduleId });
-    
+
         if (existingRating) {
           existingRating.rating = rating;
           existingRating.createdAt = new Date();
           await existingRating.save();
           console.log(`Existing rating updated successfully: ${JSON.stringify(existingRating)}`);
-    
+
           return {
             message: 'Rating updated successfully.',
             schedule: await Schedule.findById(scheduleId)
@@ -229,7 +213,7 @@ const resolvers = {
             createdAt: new Date()
           });
           console.log(`New rating created successfully: ${JSON.stringify(newRating)}`);
-    
+
           return {
             message: 'New rating created successfully.',
             schedule: await Schedule.findById(scheduleId)
@@ -246,11 +230,10 @@ const resolvers = {
         throw new Error('Error processing your rating.');
       }
     },
-    
-    // Add a comment to a schedule by user
+
     addComment: async (parent, { scheduleId, comment }, context) => {
       if (!context.user) {
-        throw new AuthenticationError('You must be logged in to comment on schedules.');
+        throw new CustomAuthError('You must be logged in to comment on schedules.');
       }
       return Schedule.findByIdAndUpdate(
         scheduleId,
@@ -259,10 +242,9 @@ const resolvers = {
       ).populate('comments.user');
     },
 
-    // Add a new schedule with optional activities for user
     addSchedule: async (parent, { title, activities }, context) => {
       if (!context.user) {
-        throw AuthenticationError;
+        throw new CustomAuthError('You must be logged in to create a schedule.');
       }
 
       try {
@@ -275,8 +257,8 @@ const resolvers = {
           const activityDocs = await Activity.insertMany(
             activities.map(activity => ({
               ...activity,
-              startTime: new Date(activity.startTime), // Correctly parses date
-              endTime: new Date(activity.endTime), // Correctly parses date
+              startTime: new Date(activity.startTime), 
+              endTime: new Date(activity.endTime), 
               schedule: schedule._id
             }))
           );
@@ -311,10 +293,9 @@ const resolvers = {
       }
     },
 
-    // Update an existing schedule's title
     updateSchedule: async (parent, { scheduleId, title }, context) => {
       if (!context.user) {
-        throw AuthenticationError;
+        throw new CustomAuthError('You must be logged in to update a schedule.');
       }
       return Schedule.findByIdAndUpdate(
         scheduleId,
@@ -322,10 +303,9 @@ const resolvers = {
         { new: true });
     },
 
-    // Delete a schedule 
     deleteSchedule: async (parent, { scheduleId, userId }, context) => {
       if (!context.user) {
-        throw AuthenticationError;
+        throw new CustomAuthError('You must be logged in to delete a schedule.');
       }
       const schedule = await Schedule.findByIdAndDelete(scheduleId);
       if (!schedule) {
@@ -340,10 +320,9 @@ const resolvers = {
       return user;
     },
 
-    // Add a new activity to a schedule
     addActivity: async (parent, { scheduleId, activityData }, context) => {
       if (!context.user) {
-        throw new AuthenticationError('You need to be logged in!');
+        throw new CustomAuthError('You need to be logged in!');
       }
 
       const { title, description, startTime, endTime, day } = activityData;
@@ -364,7 +343,6 @@ const resolvers = {
       return Schedule.findById(scheduleId).populate('activities');
     },
 
-    // Remove an activity from a schedule
     removeActivity: async (parent, { activityId }) => {
       const activity = await Activity.findByIdAndDelete(activityId);
       return Schedule.findOneAndUpdate(
@@ -374,10 +352,9 @@ const resolvers = {
       ).populate('activities');
     },
 
-    // Update an existing activity's details
     updateActivity: async (parent, { activityId, title, description, startTime, endTime, day }, context) => {
       if (!context.user) {
-        throw new AuthenticationError('You need to be logged in!');
+        throw new CustomAuthError('You need to be logged in!');
       }
 
       const updatedActivity = await Activity.findByIdAndUpdate(
@@ -398,7 +375,7 @@ const resolvers = {
 
       return updatedActivity;
     }
-  }
+  },
 };
 
 module.exports = resolvers;

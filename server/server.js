@@ -3,78 +3,94 @@ const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
 const path = require('path');
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
-
-// JWT secret and expiration should be securely stored and accessed
-const secret = 'mysecretssshhhhhhh'; // Consider moving this to environment variables
-const expiration = '2h';
-
-// Configuring dotenv to load different .env files based on NODE_ENV
-require('dotenv').config({
-  path: `./.env.${process.env.NODE_ENV}`
-});
-
+const { authMiddleware } = require('./auth/auth'); 
 const { typeDefs, resolvers } = require('./schemas');
 const db = require('./config/connection');
+require('dotenv').config({
+  path: `.env.${process.env.NODE_ENV}`
+});
 
-const PORT = process.env.PORT || 3003;
+// Initialize Express
 const app = express();
+const PORT = process.env.PORT || 3003;
+
+// CORS configuration
+const corsOptions = {
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://schedule-wizard-2.onrender.com'],
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
+};
+
+app.use(cors(corsOptions));
 
 // Middleware for parsing JSON and urlencoded form data
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// CORS configuration
-const corsOptions = {
-    origin: ['http://localhost:3000', 'https://schedule-wizard-2.onrender.com'],
-    credentials: true, // to support cookies
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization']
-};
+// Debugging middleware to track the flow
+app.use((req, res, next) => {
+  console.log("Middleware 1 executed");
+  next();
+});
 
-app.use(cors(corsOptions));
+// Apply custom JWT authentication middleware
+app.use(authMiddleware);
+
+// Debugging middleware to verify `req.user` is set
+app.use((req, res, next) => {
+  console.log("Middleware 2 executed after authMiddleware");
+  console.log("req.user after authMiddleware:", req.user);
+  next();
+});
 
 // Create a new instance of an Apollo server with the GraphQL schema
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: async ({ req }) => {
-    let authToken = null;
-    let currentUser = null;
-    try {
-      authToken = req.headers.authorization ? req.headers.authorization.split(' ').pop().trim() : null;
-      if (authToken) {
-        currentUser = jwt.verify(authToken, secret, { maxAge: expiration }).data;
-      }
-    } catch (e) {
-      console.warn(`Unable to authenticate using auth token: ${authToken}`);
-    }
-    return { currentUser };
+    console.log("Inside context function - req.user:", req ? req.user : "No req object"); 
+    return { user: req.user || null };
+  },
+  formatError: (err) => {
+    console.error("GraphQL Error:", err);
+    return err;
   },
 });
 
 // Start the Apollo server and set up middleware
 async function startServer() {
-  await server.start();
+  try {
+    await server.start();
+    console.log("Apollo Server started");
 
-  // Apply the Apollo GraphQL middleware
-  app.use('/graphql', expressMiddleware(server));
+    app.use('/graphql', expressMiddleware(server, {
+      context: async ({ req }) => {
+        console.log("Inside expressMiddleware context - req.user:", req ? req.user : "No req object");
+        return { user: req.user || null };
+      }
+    }));
+    console.log("GraphQL middleware applied");
 
-  // Serve static files and SPA on production environment
-  if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client/dist')));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    // Serve static files in production
+    if (process.env.NODE_ENV === 'production') {
+      app.use(express.static(path.join(__dirname, '../client/dist')));
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+      });
+    }
+
+    // Database connection and server start
+    db.once('open', () => {
+      app.listen(PORT, () => {
+        console.log(`API server running on port ${PORT}!`);
+        console.log(`Use GraphQL at http${process.env.NODE_ENV === 'production' ? 's' : ''}://${process.env.NODE_ENV === 'production' ? 'schedule-wizard-2.onrender.com' : 'localhost'}:${PORT}/graphql`);
+      });
     });
+  } catch (error) {
+    console.error("Error starting Apollo Server:", error);
   }
-
-  // Database connection and server start
-  db.once('open', () => {
-    app.listen(PORT, () => {
-      console.log(`API server running on port ${PORT}!`);
-      console.log(`Use GraphQL at http${process.env.NODE_ENV === 'production' ? 's' : ''}://${process.env.NODE_ENV === 'production' ? 'schedule-wizard-2.onrender.com' : 'localhost'}:${PORT}/graphql`);
-    });
-  });
 }
 
+// Start the server
 startServer();

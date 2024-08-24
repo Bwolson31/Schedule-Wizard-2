@@ -1,7 +1,9 @@
 // import React, { useState } from 'react';
 // import { loadStripe } from '@stripe/stripe-js';
 
-// const stripePromise = loadstripe (TODO)
+// const stripePromise = loadstripe () {
+//     'dsifjads;ghfasdkhgjs';
+// }
 
 
 // const CheckoutForm = () => {

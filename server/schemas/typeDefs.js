@@ -94,6 +94,6 @@ const typeDefs = `
     addRating(scheduleId: ID!, rating: Int!): Schedule
     addComment(scheduleId: ID!, comment: String!): Schedule
   }
-`;
+ `;
 
 module.exports = typeDefs;

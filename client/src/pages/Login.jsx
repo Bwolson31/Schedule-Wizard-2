@@ -1,20 +1,38 @@
 import { useState } from 'react';
 import { Form, Button, Alert, Container, Row, Col, Card } from 'react-bootstrap';
-import { useMutation } from '@apollo/client';
+import { useMutation, ApolloError } from '@apollo/client';
 import { LOGIN_USER } from '../graphql/mutations';
 import Auth from '../auth/auth';
 
 const Login = () => {
   const [userFormData, setUserFormData] = useState({ email: '', password: '' });
   const [validated, setValidated] = useState(false);
-  const [showAlert, setSnpmhowAlert] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const [login, { error, data }] = useMutation(LOGIN_USER);
 
-  //update state based on form input changes
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserFormData({ ...userFormData, [name]: value });
   };
+
+  const handleErrors = (error) => {
+    console.log('Error object:', error);  
+    if (error.networkError) {
+      console.error('Network error:', error.networkError);
+    } else if (error.graphQLErrors) {
+      error.graphQLErrors.forEach(({ message, locations, path }) => {
+        if (message.includes('CustomAuthError')) {
+          console.error('Custom authentication error:', message);
+        } else {
+          console.error(`[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`);
+        }
+      });
+    } else {
+      console.error('Unknown error:', error);
+    }
+  };
+  
+  
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
@@ -32,17 +50,27 @@ const Login = () => {
         variables: { ...userFormData },
       });
 
-      Auth.login(data.login.token);
-      // Redirect or perform any other action upon successful login
+      if (data && data.login && data.login.token) {
+        console.log('Login mutation response:', data);
+        Auth.login(data.login.token);  // Store the token
+        console.log("Token after login stored in localStorage:", localStorage.getItem('id_token'));
+      } else {
+        console.error('No token received');
+        setShowAlert(true);
+      }
     } catch (error) {
-      console.error(error);
+      handleErrors(error);  // Use the error handling function
       setShowAlert(true);
     }
 
+    // Clear the form fields after login attempt
     setUserFormData({
       email: '',
       password: '',
     });
+
+    // Double check if the token is stored correctly
+    console.log("Final check - Token in localStorage:", localStorage.getItem('id_token'));
   };
 
   return (
@@ -101,7 +129,7 @@ const Login = () => {
               <Button
                 disabled={!(userFormData.email && userFormData.password)}
                 type="submit"
-                variant="success" // Changed variant to 'success'
+                variant="success"
                 className="w-100 fs-4"
               >
                 Submit

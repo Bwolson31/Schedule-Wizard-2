@@ -16,8 +16,9 @@ export default defineConfig({
         target: 'http://localhost:3003',
         changeOrigin: true,
         secure: false,
-      }
-    }
+        rewrite: (path) => path.replace(/^\/graphql/, ''),
+      },
+    },
   },
   optimizeDeps: {
     include: ['@stripe/react-stripe-js']
