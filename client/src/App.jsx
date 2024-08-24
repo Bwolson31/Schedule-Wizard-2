@@ -16,12 +16,17 @@ import Navbar from './components/Navbar';
 import { UserProvider } from './contexts/UserContext.jsx';
 import AuthService from './auth/auth.js';
 
+
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://schedule-wizard-2.onrender.com/graphql' 
+  : 'http://localhost:3003/graphql';
+
+
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_APP_GRAPHQL_URL || 'http://localhost:3003/graphql',
+  uri: import.meta.env.VITE_APP_GRAPHQL_URL || API_URL,
 });
 
-
-console.log("API URI: ", import.meta.env.VITE_APP_GRAPHQL_URL);
+console.log("API URI: ", import.meta.env.VITE_APP_GRAPHQL_URL || API_URL);
 
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('id_token');
