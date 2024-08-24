@@ -12,8 +12,7 @@ require('dotenv').config({
 
 // Initialize Express
 const app = express();
-const PORT = process.env.PORT || 3003;
-
+const PORT = process.env.PORT || 3000; 
 // CORS configuration
 const corsOptions = {
   origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://schedule-wizard-2.onrender.com'],
@@ -48,8 +47,8 @@ app.use((req, res, next) => {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: async ({ req }) => {
-    console.log("Inside context function - req.user:", req ? req.user : "No req object"); 
+  context: ({ req }) => {
+    console.log("Inside context function - req.user:", req.user);
     return { user: req.user || null };
   },
   formatError: (err) => {
@@ -62,15 +61,7 @@ const server = new ApolloServer({
 async function startServer() {
   try {
     await server.start();
-    console.log("Apollo Server started");
-
-    app.use('/graphql', expressMiddleware(server, {
-      context: async ({ req }) => {
-        console.log("Inside expressMiddleware context - req.user:", req ? req.user : "No req object");
-        return { user: req.user || null };
-      }
-    }));
-    console.log("GraphQL middleware applied");
+    app.use('/graphql', expressMiddleware(server));
 
     // Serve static files in production
     if (process.env.NODE_ENV === 'production') {
@@ -80,13 +71,13 @@ async function startServer() {
       });
     }
 
-    // Database connection and server start
     db.once('open', () => {
       app.listen(PORT, () => {
         console.log(`API server running on port ${PORT}!`);
         console.log(`Use GraphQL at http${process.env.NODE_ENV === 'production' ? 's' : ''}://${process.env.NODE_ENV === 'production' ? 'schedule-wizard-2.onrender.com' : 'localhost'}:${PORT}/graphql`);
       });
     });
+
   } catch (error) {
     console.error("Error starting Apollo Server:", error);
   }
@@ -94,3 +85,4 @@ async function startServer() {
 
 // Start the server
 startServer();
+
