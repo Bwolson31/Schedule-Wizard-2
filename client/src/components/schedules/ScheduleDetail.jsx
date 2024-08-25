@@ -23,6 +23,15 @@ function ScheduleDetail() {
   if (!data || !data.getOneSchedule) return <div>No schedule found.</div>;
 
   const scheduleData = data.getOneSchedule;
+  const activities = scheduleData.activities || [];
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) {
+      return 'Time not set';
+    }
+    const date = new Date(Number(timestamp));
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
 
   return (
     <Container>
@@ -34,6 +43,16 @@ function ScheduleDetail() {
                 {scheduleData.title} <StarRating rating={scheduleData.averageRating || 0} />
               </h2>
               <RatingForm scheduleId={scheduleId} refetch={refetch} />
+              <ul className="list-unstyled">
+                {activities.map(activity => (
+                <li key={activity._id} className="mb-3">
+                <h4 className="mb-1" style={{ color: 'green' }}>{activity.title}</h4>
+                <p className="mb-0"><strong>Day:</strong> {activity.day}</p>
+                <p className="mb-0"><strong>Time:</strong> {formatTime(activity.startTime)} - {formatTime(activity.endTime)}</p>
+                 <p className="mb-0"><strong>Description:</strong> {activity.description}</p>
+                  </li>
+                ))}
+              </ul>
             </Card.Body>
           </Card>
         </Col>
