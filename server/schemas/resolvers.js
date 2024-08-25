@@ -243,18 +243,45 @@ const resolvers = {
     },
     
 
-    
     addComment: async (parent, { scheduleId, comment }, context) => {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to comment on schedules.');
       }
-      return Schedule.findByIdAndUpdate(
-        scheduleId,
-        { $push: { comments: { user: context.user._id, comment: comment, createdAt: new Date() } } },
-        { new: true }
-      ).populate('comments.user');
+      
+      try {
+        // Correctly creating a new ObjectId instance from the user's ID
+        const userId = new mongoose.Types.ObjectId(context.user._id);
+        
+        const updatedSchedule = await Schedule.findByIdAndUpdate(
+          scheduleId,
+          { 
+            $push: { 
+              comments: {
+                user: userId, 
+                comment: comment,
+                createdAt: new Date()
+              } 
+            }
+          },
+          { new: true }
+        )
+        .populate({
+          path: 'comments.user',
+          select: 'username'
+        });
+    
+        if (!updatedSchedule) {
+          throw new Error('Failed to fetch updated schedule after adding comment');
+        }
+    
+        return updatedSchedule;
+      } catch (error) {
+        console.error(`Error in addComment resolver: ${error}`);
+        throw new Error('Error processing your comment.');
+      }
     },
-
+    
+    
     addSchedule: async (parent, { title, activities }, context) => {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to create a schedule.');
