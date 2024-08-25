@@ -9,6 +9,7 @@ import AddActivityButton from '../components/schedules/AddActivityButton';
 import UpdateActivityButton from '../components/schedules/UpdateActivityButton';
 import RemoveActivityButton from '../components/schedules/RemoveActivityButton';
 import AuthService from '../auth/auth.js';
+import StarRating from '../components/schedules/StarRating.jsx';
 
 function Profile() {
     const [userProfile, setUserProfile] = useState(null);
@@ -131,6 +132,7 @@ function Profile() {
                                 <Card.Header as="h5" className="bg-success text-white d-flex justify-content-between align-items-center">
                                     <Link to={`/schedule/${schedule._id}`} className="text-white">
                                         {schedule.title}
+                                        <StarRating rating={Math.round(schedule.averageRating || 0)} />
                                     </Link>
                                     <div>
                                         <Button variant="info" onClick={() => { document.location.replace(`/update/${schedule._id}`) }}>Update</Button>

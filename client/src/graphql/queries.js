@@ -56,6 +56,7 @@ query Me($sortBy: SortBy, $sortOrder: SortOrder) {
     schedules {
       _id
       title
+      averageRating
       activities {
         _id
         title
