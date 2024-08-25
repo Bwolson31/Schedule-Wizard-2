@@ -77,6 +77,7 @@ query GetSchedules($sortBy: SortBy, $sortOrder: SortOrder) {
   getSchedules(sortBy: $sortBy, sortOrder: $sortOrder) {
     _id
     title
+    averageRating
     activities {
       _id
       description
@@ -112,6 +113,7 @@ export const GET_ONE_SCHEDULE = gql`
     getOneSchedule(scheduleId: $scheduleId) {
       _id
       title
+      averageRating
       activities {
         _id
         title

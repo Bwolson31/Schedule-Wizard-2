@@ -20,7 +20,11 @@ const scheduleSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User' },
     comment: String,
     createdAt: { type: Date, default: Date.now }
-  }]
+  }],
+  averageRating: {
+    type: Number, 
+    default: 0
+  }
 }, { timestamps: true }); // Automatically add createdAt and updatedAt timestamps
 
 // Create a virtual relationship between schedule and rating model. Helps get related raitings for a schedule without needing to store them in the Schedule document. More Efficient. Cleaner. 

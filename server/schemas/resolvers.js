@@ -90,7 +90,15 @@ const resolvers = {
             populate: { path: 'user', select: 'username' }
           });
 
-        return schedule;
+          const ratings = await Rating.find({ schedule: schedule._id });
+          if (ratings.length) {
+              const averageRating = ratings.reduce((acc, r) => acc + r.rating, 0) / ratings.length;
+              schedule.averageRating = averageRating;  
+          } else {
+              schedule.averageRating = 0;  // Default to 0 if no ratings
+          }
+  
+          return schedule;
       } catch (error) {
         console.error(`Error fetching schedule: ${error}`);
         throw new Error('Error fetching schedule.');
@@ -159,7 +167,7 @@ const resolvers = {
   Mutation: {
     addUser: async (parent, { username, email, password }) => {
       const user = await User.create({ username, email, password });
-      const token = signToken(user); // Ensure signToken is correctly implemented
+      const token = signToken(user); 
       return { token, user };
     },
 
@@ -179,58 +187,63 @@ const resolvers = {
       return { token, user };
     },
 
+
+
     addRating: async (parent, { scheduleId, rating }, context) => {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to rate schedules.');
       }
-
+    
       console.log(`Received request to rate schedule ${scheduleId} with rating ${rating} by user ${context.user._id}`);
-
+    
       try {
+        // Check if rating already exists
         const existingRating = await Rating.findOne({ user: context.user._id, schedule: scheduleId });
-
+    
+        // Update existing or create new rating
         if (existingRating) {
           existingRating.rating = rating;
-          existingRating.createdAt = new Date();
           await existingRating.save();
-          console.log(`Existing rating updated successfully: ${JSON.stringify(existingRating)}`);
-
-          return {
-            message: 'Rating updated successfully.',
-            schedule: await Schedule.findById(scheduleId)
-              .populate('activities')
-              .populate('comments.user', 'username')
-              .populate({
-                path: 'ratings',
-                populate: { path: 'user', select: 'username' }
-              })
-          };
         } else {
-          const newRating = await Rating.create({
-            user: context.user._id,
-            schedule: scheduleId,
-            rating,
-            createdAt: new Date()
-          });
-          console.log(`New rating created successfully: ${JSON.stringify(newRating)}`);
-
-          return {
-            message: 'New rating created successfully.',
-            schedule: await Schedule.findById(scheduleId)
-              .populate('activities')
-              .populate('comments.user', 'username')
-              .populate({
-                path: 'ratings',
-                populate: { path: 'user', select: 'username' }
-              })
-          };
+          await Rating.create({ user: context.user._id, schedule: scheduleId, rating });
         }
+    
+        // Recalculate the average rating
+        const ratings = await Rating.find({ schedule: scheduleId });
+        const averageRating = ratings.reduce((acc, curr) => acc + curr.rating, 0) / (ratings.length || 1);
+    
+        // Update the schedule with the new average rating
+        const updatedSchedule = await Schedule.findByIdAndUpdate(
+          scheduleId, 
+          { $set: { averageRating } },
+          { new: true }
+        )
+        .populate('activities')
+        .populate({
+          path: 'comments.user',
+          select: 'username'
+        })
+        .populate({
+          path: 'ratings',
+          populate: {
+            path: 'user',
+            select: 'username'
+          }
+        });
+    
+        if (!updatedSchedule) {
+          throw new Error('Failed to fetch updated schedule');
+        }
+    
+        return updatedSchedule;
       } catch (error) {
-        console.error(`Error updating/creating rating: ${error}`);
+        console.error(`Error in addRating resolver: ${error}`);
         throw new Error('Error processing your rating.');
       }
     },
+    
 
+    
     addComment: async (parent, { scheduleId, comment }, context) => {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to comment on schedules.');

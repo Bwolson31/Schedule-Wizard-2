@@ -59,7 +59,7 @@ const Login = () => {
         setShowAlert(true);
       }
     } catch (error) {
-      handleErrors(error);  // Use the error handling function
+      handleErrors(error); 
       setShowAlert(true);
     }
 

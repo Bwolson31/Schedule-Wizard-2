@@ -30,7 +30,6 @@ app.use(express.urlencoded({ extended: false }));
 
 // Debugging middleware to track the flow
 app.use((req, res, next) => {
-  console.log("Middleware 1 executed");
   next();
 });
 
@@ -39,8 +38,6 @@ app.use(authMiddleware);
 
 // Debugging middleware to verify `req.user` is set
 app.use((req, res, next) => {
-  console.log("Middleware 2 executed after authMiddleware");
-  console.log("req.user after authMiddleware:", req.user);
   next();
 });
 
@@ -49,11 +46,9 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: async ({ req }) => {
-    console.log("Inside context function - req.user:", req ? req.user : "No req object"); 
     return { user: req.user || null };
   },
   formatError: (err) => {
-    console.error("GraphQL Error:", err);
     return err;
   },
 });
@@ -66,12 +61,10 @@ async function startServer() {
 
     app.use('/graphql', expressMiddleware(server, {
       context: async ({ req }) => {
-        console.log("Inside expressMiddleware context - req.user:", req ? req.user : "No req object");
         return { user: req.user || null };
       }
     }));
-    console.log("GraphQL middleware applied");
-
+  
     // Serve static files in production
     if (process.env.NODE_ENV === 'production') {
       app.use(express.static(path.join(__dirname, '../client/dist')));

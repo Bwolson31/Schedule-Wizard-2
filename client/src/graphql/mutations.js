@@ -138,6 +138,7 @@ export const ADD_RATING = gql`
     addRating(scheduleId: $scheduleId, rating: $rating) {
       _id
       title
+      averageRating
       ratings {
         user {
           _id

@@ -22,7 +22,6 @@ function RatedSchedules() {
 
   // useEffect to refetch data whenever sortBy or sortOrder changes
   useEffect(() => {
-    console.log("User logged in: ", AuthService.loggedIn());
     refetch({ sortBy, sortOrder });
   }, [sortBy, sortOrder, refetch]);
 

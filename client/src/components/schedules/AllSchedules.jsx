@@ -4,6 +4,7 @@ import { GET_SCHEDULES } from '../../graphql/queries';
 import { Link } from 'react-router-dom';
 import { ListGroup, Container, Row, Col, Spinner, Alert, DropdownButton, Dropdown } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import StarRating from './StarRating'; 
 
 function AllSchedules() {
   // State variables to control sorting options
@@ -70,13 +71,14 @@ function AllSchedules() {
           {/* List of schedules */}
           <ListGroup>
             {data.getSchedules.map(schedule => (
-              <ListGroup.Item key={schedule._id} className="border border-success text-center">
-                <Link to={`/schedule/${schedule._id}`} className="text-decoration-none" style={{ color: 'green' }}>
-                  {schedule.title}
-                </Link>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
+            <ListGroup.Item key={schedule._id} className="border border-success text-center">
+            <Link to={`/schedule/${schedule._id}`} className="text-decoration-none" style={{ color: 'green' }}>
+            {schedule.title}
+            <StarRating rating={schedule.averageRating || 0} totalStars={5} />
+          </Link>
+    </ListGroup.Item>
+  ))}
+</ListGroup>
         </Col>
       </Row>
     </Container>
