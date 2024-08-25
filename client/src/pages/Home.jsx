@@ -11,7 +11,7 @@ function Home() {
         <Col md={8}>
           <Card className="text-center shadow-sm">
             <Card.Body>
-              <Card.Title as="h1">Welcome to Schedule Wizard</Card.Title>
+              <Card.Title as="h1">Welcome to ScheduleWizard</Card.Title>
               <Card.Text>
                 Manage and create your schedules with ease.
               </Card.Text>
