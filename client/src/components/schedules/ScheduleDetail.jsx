@@ -5,6 +5,8 @@ import { GET_ONE_SCHEDULE } from '../../graphql/queries';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import RatingForm from './RatingForm';
 import StarRating from './StarRating';
+import CommentForm from './CommentForm';
+import UserComment from './UserComment';
 
 function ScheduleDetail() {
   const { scheduleId } = useParams();
@@ -13,7 +15,6 @@ function ScheduleDetail() {
     fetchPolicy: "network-only"
   });
 
-  // Log average rating whenever data changes
   useEffect(() => {
     console.log('Current average rating:', data?.getOneSchedule?.averageRating);
   }, [data]);
@@ -24,6 +25,7 @@ function ScheduleDetail() {
 
   const scheduleData = data.getOneSchedule;
   const activities = scheduleData.activities || [];
+  const comments = scheduleData.comments || [];  // Default to an empty array if comments are undefined
 
   const formatTime = (timestamp) => {
     if (!timestamp) {
@@ -31,6 +33,12 @@ function ScheduleDetail() {
     }
     const date = new Date(Number(timestamp));
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
+
+  const handleCommentAdded = () => {
+    console.log("Comment was added!");
+    
   };
 
   return (
@@ -45,14 +53,23 @@ function ScheduleDetail() {
               <RatingForm scheduleId={scheduleId} refetch={refetch} />
               <ul className="list-unstyled">
                 {activities.map(activity => (
-                <li key={activity._id} className="mb-3">
-                <h4 className="mb-1" style={{ color: 'green' }}>{activity.title}</h4>
-                <p className="mb-0"><strong>Day:</strong> {activity.day}</p>
-                <p className="mb-0"><strong>Time:</strong> {formatTime(activity.startTime)} - {formatTime(activity.endTime)}</p>
-                 <p className="mb-0"><strong>Description:</strong> {activity.description}</p>
+                  <li key={activity._id} className="mb-3">
+                    <h4 className="mb-1" style={{ color: 'green' }}>{activity.title}</h4>
+                    <p className="mb-0"><strong>Day:</strong> {activity.day}</p>
+                    <p className="mb-0"><strong>Time:</strong> {formatTime(activity.startTime)} - {formatTime(activity.endTime)}</p>
+                    <p className="mb-0"><strong>Description:</strong> {activity.description}</p>
                   </li>
                 ))}
               </ul>
+              {comments.length > 0 && (
+                <div>
+                  <h4>Comments:</h4>
+                  {comments.map(comment => (
+                    <UserComment key={comment._id} comment={comment} />
+                  ))}
+                </div>
+              )}
+              <CommentForm scheduleId={scheduleId} onCommentAdded={handleCommentAdded} refetch={refetch} />
             </Card.Body>
           </Card>
         </Col>

@@ -15,12 +15,13 @@ const scheduleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Activity'
   }],
-  // Array of comments on the schedule, each with a reference related to user, comment text (TODO), and creation date
-  comments: [{
+  
+  comments: [{ 
     user: { type: Schema.Types.ObjectId, ref: 'User' },
     comment: String,
     createdAt: { type: Date, default: Date.now }
   }],
+
   averageRating: {
     type: Number, 
     default: 0

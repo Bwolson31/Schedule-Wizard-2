@@ -56,6 +56,7 @@ const typeDefs = `
   type RatedSchedule {
     schedule: Schedule!
     rating: Int!
+    comments: [Comment]
   }
 
   enum SortBy {
