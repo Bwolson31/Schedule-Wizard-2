@@ -21,7 +21,7 @@ const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://schedule-wizard-2.onrender.com/graphql' 
   : 'http://localhost:3003/graphql';
 
-
+  
 const httpLink = createHttpLink({
   uri: import.meta.env.VITE_APP_GRAPHQL_URL || API_URL,
 });
