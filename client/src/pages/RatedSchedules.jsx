@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './RatedSchedules.css';
 import { useQuery } from '@apollo/client';
-import { Container, Row, Col, Card, ListGroup, Alert, Button, ButtonGroup } from 'react-bootstrap';
+import { Container, Row, Col, Card, ListGroup, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { GET_RATED_SCHEDULES } from '../graphql/queries';
+import SortingComponent from '../components/schedules/SortingComponent';
 
 function RatedSchedules() {
   // State variables to manage sorting criteria
-  const [sortBy, setSortBy] = useState('CREATED_AT');
-  const [sortOrder, setSortOrder] = useState('DESC');
+  // Adjust these initial values to match the updated enums in your schema
+  const [sortBy, setSortBy] = useState('DateCreated');
+  const [sortOrder, setSortOrder] = useState('NewestFirst');
 
   // GraphQL query to fetch rated schedules, with sorting variables and authorization header
   const { loading, error, data, refetch } = useQuery(GET_RATED_SCHEDULES, {
@@ -44,9 +46,6 @@ function RatedSchedules() {
     );
   }
 
-  // Log the fetched data for debugging
-  console.log("Rated schedules data: ", data);
-
   // Extract rated schedules data from the response
   const ratedSchedules = data?.getRatedSchedules || [];
 
@@ -55,33 +54,8 @@ function RatedSchedules() {
       <Row>
         <Col md={{ span: 8, offset: 2 }}>
           <h2 className="text-center mb-4 text-success">Rated Schedules</h2>
-          {/* Buttons for changing sort criteria */}
-          <ButtonGroup className="mb-3">
-            <Button
-              variant={sortBy === 'CREATED_AT' && sortOrder === 'DESC' ? 'primary' : 'outline-primary'}
-              onClick={() => { setSortBy('CREATED_AT'); setSortOrder('DESC'); }}
-            >
-              Newest First
-            </Button>
-            <Button
-              variant={sortBy === 'CREATED_AT' && sortOrder === 'ASC' ? 'primary' : 'outline-primary'}
-              onClick={() => { setSortBy('CREATED_AT'); setSortOrder('ASC'); }}
-            >
-              Oldest First
-            </Button>
-            <Button
-              variant={sortBy === 'RATING' && sortOrder === 'DESC' ? 'primary' : 'outline-primary'}
-              onClick={() => { setSortBy('RATING'); setSortOrder('DESC'); }}
-            >
-              Highest Rated
-            </Button>
-            <Button
-              variant={sortBy === 'RATING' && sortOrder === 'ASC' ? 'primary' : 'outline-primary'}
-              onClick={() => { setSortBy('RATING'); setSortOrder('ASC'); }}
-            >
-              Lowest Rated
-            </Button>
-          </ButtonGroup>
+          {/* SortingComponent for sorting schedules */}
+          <SortingComponent sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />
           {/* Display message if there are no rated schedules */}
           {ratedSchedules.length === 0 ? (
             <Alert variant="info">No rated schedules available</Alert>

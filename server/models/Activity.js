@@ -1,9 +1,16 @@
-const { Schema, model} = require('mongoose');;
+const { Schema, model} = require('mongoose');
+
+function titleCase(title) {
+    return title.toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
+  }
+
+
 
 const activitySchema = new Schema({
     title: {
         type: String,
-        required: true
+        required: true,
+        set: titleCase
     },
     startTime: {
         type: Date,

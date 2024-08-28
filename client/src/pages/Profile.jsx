@@ -10,6 +10,7 @@ import UpdateActivityButton from '../components/schedules/UpdateActivityButton';
 import RemoveActivityButton from '../components/schedules/RemoveActivityButton';
 import AuthService from '../auth/auth.js';
 import StarRating from '../components/schedules/StarRating.jsx';
+import SortingComponent from '../components/schedules/SortingComponent';
 
 function Profile() {
     const [userProfile, setUserProfile] = useState(null);
@@ -24,8 +25,8 @@ function Profile() {
         }
     }, []);
 
-    const [sortBy, setSortBy] = useState('CREATED_AT');
-    const [sortOrder, setSortOrder] = useState('DESC');
+    const [sortBy, setSortBy] = useState('DateCreated');
+    const [sortOrder, setSortOrder] = useState('NewestFirst');
 
     const { loading, error, data, refetch } = useQuery(ME, {
         variables: { sortBy, sortOrder },
@@ -69,12 +70,6 @@ function Profile() {
         await updateActivity({ variables: { activityId, title, description } });
     };
 
-    const handleSortChange = (sortBy, sortOrder) => {
-        console.log('Changing sort to', sortBy, sortOrder);
-        setSortBy(sortBy);
-        setSortOrder(sortOrder);
-        refetch({ sortBy, sortOrder });
-    };
 
     return (
         <Container className="mt-5">
@@ -98,32 +93,7 @@ function Profile() {
             <Row>
                 <Col md={{ span: 8, offset: 2 }}>
                     <h2 className="text-center mb-4 text-success">Your Schedules</h2>
-                    <ButtonGroup className="mb-3">
-                        <Button
-                            variant={sortBy === 'CREATED_AT' && sortOrder === 'DESC' ? 'primary' : 'outline-primary'}
-                            onClick={() => handleSortChange('CREATED_AT', 'DESC')}
-                        >
-                            Newest First
-                        </Button>
-                        <Button
-                            variant={sortBy === 'CREATED_AT' && sortOrder === 'ASC' ? 'primary' : 'outline-primary'}
-                            onClick={() => handleSortChange('CREATED_AT', 'ASC')}
-                        >
-                            Oldest First
-                        </Button>
-                        <Button
-                            variant={sortBy === 'RATING' && sortOrder === 'DESC' ? 'primary' : 'outline-primary'}
-                            onClick={() => handleSortChange('RATING', 'DESC')}
-                        >
-                            Highest Rated
-                        </Button>
-                        <Button
-                            variant={sortBy === 'RATING' && sortOrder === 'ASC' ? 'primary' : 'outline-primary'}
-                            onClick={() => handleSortChange('RATING', 'ASC')}
-                        >
-                            Lowest Rated
-                        </Button>
-                    </ButtonGroup>
+                    <SortingComponent sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />
                     {userData.schedules.length === 0 ? (
                         <Alert variant="info">No schedules available</Alert>
                     ) : (

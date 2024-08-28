@@ -52,33 +52,28 @@ const resolvers = {
       return user;
     },
 
-    getSchedules: async (_, { sortBy = 'CREATED_AT', sortOrder = 'DESC' }) => {
-      let sortField;
-      switch (sortBy) {
-        case 'CREATED_AT':
-          sortField = 'createdAt';
-          break;
-        case 'UPDATED_AT':
-          sortField = 'updatedAt';
-          break;
-        case 'TITLE':
-          sortField = 'title';
-          break;
-        case 'RATING':
-          sortField = 'averageRating';
-          break;
-        default:
-          sortField = 'createdAt';
-      }
-
-      const order = sortOrder === 'ASC' ? 1 : -1;
+    getSchedules: async (_, { sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
+      const sortFieldMap = {
+          DateCreated: 'createdAt',
+          DateUpdated: 'updatedAt',
+          Title: 'title',
+          Popularity: 'averageRating'
+      };
+  
+      const sortOrderMap = {
+        NewestFirst: -1,  
+        OldestFirst: 1,   
+        HighestFirst: -1,
+        LowestFirst: 1   
+    };
+  
+      const sortField = sortFieldMap[sortBy];
+      const order = sortOrderMap[sortOrder];
+  
       const schedules = await Schedule.find().sort({ [sortField]: order }).populate('activities');
-      for (const schedule of schedules) {
-        const ratings = await Rating.find({ schedule: schedule._id }).populate('user');
-        schedule.ratings = ratings;
-      }
       return schedules;
-    },
+  },
+  
 
     getOneSchedule: async (parent, { scheduleId }) => {
       try {

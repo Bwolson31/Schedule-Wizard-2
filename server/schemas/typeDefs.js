@@ -60,15 +60,17 @@ const typeDefs = `
   }
 
   enum SortBy {
-    CREATED_AT
-    UPDATED_AT
-    TITLE
-    RATING
+    DateCreated
+    DateUpdated
+    Title
+    Popularity
   }
 
   enum SortOrder {
-    ASC
-    DESC
+    NewestFirst
+    OldestFirst
+    HighestFirst
+    LowestFirst
   }
 
   type Query {
