@@ -1,6 +1,8 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
+import { Link } from 'react-router-dom'; 
 import { formatTimeForInput } from '../../utils/formatTimeForInput';
+
 
 function UserComment({ comment }) {
   const formattedTime = formatTimeForInput(comment.createdAt);
@@ -8,7 +10,9 @@ function UserComment({ comment }) {
   return (
     <Card className="mb-2">
       <Card.Header>
-        {comment.user.username} on {formattedTime}
+      <Link to={`/user/${comment.user._id}`} style={{ textDecoration: 'none' }}>
+          {comment.user.username}
+        </Link> on {formattedTime}
       </Card.Header>
       <Card.Body>
         <Card.Text>
