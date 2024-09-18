@@ -14,8 +14,9 @@ import ScheduleCreationPage from './components/schedules/ScheduleCreationPage.js
 import ScheduleDetail from './components/schedules/ScheduleDetail.jsx';
 import SearchResultsPage from './components/SearchResultsPage'; 
 import Update from './pages/Update.jsx';
-
 import 'bootstrap/dist/css/bootstrap.min.css';
+import CancelPage from './components/CancelPaymentPage.jsx';
+import PaymentSuccess from './components/PaymentSuccess.jsx';
 
 const router = createBrowserRouter([
   {
@@ -65,6 +66,14 @@ const router = createBrowserRouter([
       {
         path: 'user/:userId',
         element: <Profile />
+      },
+      {
+        path: "cancel",
+        element: <CancelPage />
+      },
+      {
+        path: "success",
+        element: <PaymentSuccess />
       }
     ]
   },

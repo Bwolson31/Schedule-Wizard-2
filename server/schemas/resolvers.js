@@ -1,9 +1,21 @@
+require('dotenv').config({
+  path: `.env.${process.env.NODE_ENV}`
+});
+
+
+
 const { User, Schedule, Activity, Rating } = require('../models');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { signToken } = require('../auth/auth');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+console.log('Stripe initialized:', !!stripe);
+
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Stripe Secret Key:', process.env.STRIPE_SECRET_KEY);
+
+console.log('Loaded Stripe Secret Key:', stripe);
 
 // Custom error class to replace AuthenticationError temporarily
 class CustomAuthError extends Error {
@@ -38,16 +50,12 @@ const resolvers = {
         sort[sortBy.toLowerCase()] = sortOrder === 'ASC' ? 1 : -1;
       }
 
-      console.log('Sort object:', sort);
-
       const user = await User.findById(context.user._id).populate({
         path: 'schedules',
         options: {
           sort,
         },
       });
-
-      console.log('User data fetched:', user);
 
       return user;
     },
@@ -140,8 +148,6 @@ const resolvers = {
         sort[sortField] = sortOrder === 'ASC' ? 1 : -1;
       }
 
-      console.log("Sort object: ", sort);
-
       const ratings = await Rating.find({ user: context.user._id }).populate({
         path: 'schedule',
         populate: {
@@ -149,8 +155,6 @@ const resolvers = {
           model: 'Activity',
         },
       }).sort(sort);
-
-      console.log("Ratings fetched: ", ratings);
 
       return ratings.map(rating => ({
         schedule: rating.schedule,
@@ -182,14 +186,43 @@ const resolvers = {
       return { token, user };
     },
 
+    createDonationSession: async (_, { amount }) => {
+      try {
+        console.log('Creating Stripe session with key:', process.env.STRIPE_SECRET_KEY);
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Custom Donation',
+              },
+              unit_amount: Math.round(amount * 100), // Convert amount to cents
+            },
+            quantity: 1,
+          }],
+          mode: 'payment',
+          success_url: `${process.env.FRONTEND_URL}/success?amount=${amount}`,
+          cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+        });
+
+        console.log('Session ID:', session.id);
+        return { sessionId: session.id };
+
+      } catch (error) {
+        console.error('Error creating Stripe session:', error);
+        return {
+          error: error.message
+        };
+      }
+    },
 
 
     addRating: async (parent, { scheduleId, rating }, context) => {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to rate schedules.');
       }
-    
-      console.log(`Received request to rate schedule ${scheduleId} with rating ${rating} by user ${context.user._id}`);
+  
     
       try {
         // Check if rating already exists
@@ -411,6 +444,7 @@ const resolvers = {
       return updatedActivity;
     }
   },
+  
 };
 
 module.exports = resolvers;

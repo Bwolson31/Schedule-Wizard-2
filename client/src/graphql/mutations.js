@@ -183,3 +183,14 @@ export const CHECK_USER_RATING = gql`
     }
   }
 `;
+
+export const CREATE_DONATION_SESSION = gql`
+mutation CreateDonationSession($amount: Float!) {
+  createDonationSession(amount: $amount) {
+    sessionId
+    successUrl
+    cancelUrl
+    error
+  }
+}
+`;

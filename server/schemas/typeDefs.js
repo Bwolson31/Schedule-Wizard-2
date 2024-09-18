@@ -59,6 +59,13 @@ const typeDefs = `
     comments: [Comment]
   }
 
+  type SessionResponse {
+    sessionId: String
+    successUrl: String
+    cancelUrl: String
+    error: String
+  }
+
   enum SortBy {
     DateCreated
     DateUpdated
@@ -96,6 +103,7 @@ const typeDefs = `
     updateActivity(activityId: ID!, title: String, description: String, startTime: String, endTime: String, day: String): Activity
     addRating(scheduleId: ID!, rating: Int!): Schedule
     addComment(scheduleId: ID!, comment: String!): Schedule
+    createDonationSession(amount: Float!): SessionResponse
   }
  `;
 

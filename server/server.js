@@ -1,3 +1,7 @@
+require('dotenv').config({
+  path: `.env.${process.env.NODE_ENV}`
+});
+
 const express = require('express');
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
@@ -6,9 +10,16 @@ const cors = require('cors');
 const { authMiddleware } = require('./auth/auth'); 
 const { typeDefs, resolvers } = require('./schemas');
 const db = require('./config/connection');
-require('dotenv').config({
-  path: `.env.${process.env.NODE_ENV}`
-});
+
+console.log(process.env);
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+
+
+console.log('Stripe Secret Key:', process.env.STRIPE_SECRET_KEY);
+
+
 
 // Initialize Express
 const app = express();
@@ -77,7 +88,6 @@ async function startServer() {
     db.once('open', () => {
       app.listen(PORT, () => {
         console.log(`API server running on port ${PORT}!`);
-        console.log(`Use GraphQL at http${process.env.NODE_ENV === 'production' ? 's' : ''}://${process.env.NODE_ENV === 'production' ? 'schedule-wizard-2.onrender.com' : 'localhost'}:${PORT}/graphql`);
       });
     });
   } catch (error) {

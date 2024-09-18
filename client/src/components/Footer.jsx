@@ -13,7 +13,7 @@ function Footer() {
           <p className="mb-0" style={{ color: 'green' }}>© 2024 ScheduleWizard. All rights reserved.</p>
         </Col>
         <Col xs={12} md={2}>
-          <DonationButton amount="5.00" itemID="price_1IUx1FJ2iOysJZvP1LD3EzTR" />
+          <DonationButton amount="1.00" itemID="price_1Pz5q907q9CZDo2MbKnwCClH" />
         </Col>
       </Row>
     </Container>

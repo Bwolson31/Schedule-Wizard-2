@@ -1,28 +1,35 @@
 import React from "react";
 import { Button } from 'react-bootstrap';
-import { loadStripe } from "@stripe/stripe-js";
+import { CREATE_DONATION_SESSION } from "../graphql/mutations";
+import { useMutation } from '@apollo/client';
 
 
-const DonationButton = ({ itemID, ammount }) => {
-  const handleClick = async (event) => {
-    const stripe = await stripePromise;
-    stripe
-      .redirectToCheckout({
-        lineItems: [{ price: itemID, quantity: 1 }],
-        mode: "payment",
-        successUrl: window.location.protocol + "//localhost:3000/profile",
-        cancelUrl: window.location.protocol + "//localhost:3000/profile",
-        submitType: "donate",
-      })
-      .then(function (result) {
-        if (result.error) {
-          console.log(result);
-        }
-      });
+
+
+
+const DonationButton = ({ amount }) => {
+  const [createDonationSession] = useMutation(CREATE_DONATION_SESSION);
+
+  const handleClick = async () => {
+    try {
+      const { data } = await createDonationSession({ variables: { amount: parseFloat(amount) } });
+      if (data.createDonationSession.error) {
+        console.error('Error creating session:', data.createDonationSession.error);
+      } else if (data.createDonationSession.sessionId) {
+        const checkoutUrl = `https://checkout.stripe.com/pay/${data.createDonationSession.sessionId}`;
+        console.log('Redirecting to:', checkoutUrl);
+        window.location = checkoutUrl;
+      } else {
+        console.error('Unexpected response from server');
+      }
+    } catch (error) {
+      console.error('Network or server error:', error);
+    }
   };
+
   return (
-    <Button className="animated-button justify-content-end mb-3" variant="success" onClick={handleClick}>
-      Donate {ammount}$
+    <Button onClick={handleClick} variant="success">
+      Donate ${amount}
     </Button>
   );
 };

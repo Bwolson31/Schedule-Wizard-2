@@ -11,7 +11,6 @@ module.exports = {
     }
 
     if (!token) {
-      console.log('No token found');
       return next();
     }
 

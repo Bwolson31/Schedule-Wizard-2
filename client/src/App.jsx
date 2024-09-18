@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import {
   ApolloClient,
@@ -9,13 +9,22 @@ import {
 import { setContext } from '@apollo/client/link/context';
 import { Outlet } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { useLocation } from 'react-router-dom';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { UserProvider } from './contexts/UserContext.jsx';
-import AuthService from './auth/auth.js';
 
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+console.log('Stripe promise:', stripePromise);
+
+
+console.log("Stripe Key:", import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const API_URL = process.env.NODE_ENV === 'production' 
   ? 'https://schedule-wizard-2.onrender.com/graphql' 
@@ -26,11 +35,10 @@ const httpLink = createHttpLink({
   uri: import.meta.env.VITE_APP_GRAPHQL_URL || API_URL,
 });
 
-console.log("API URI: ", import.meta.env.VITE_APP_GRAPHQL_URL || API_URL);
+
 
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('id_token');
-  console.log("Client sending token:", token);
 
   return {
     headers: {
@@ -47,12 +55,21 @@ const client = new ApolloClient({
 
 function App() {
   useEffect(() => {
-    console.log("Is the user logged in?", AuthService.loggedIn());
+    loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
+      .then(stripe => {
+        console.log('Stripe initialized:', stripe);
+      })
+      .catch(error => {
+        console.error('Error initializing Stripe:', error);
+      });
   }, []);
 
+
   return (
+    
     <ApolloProvider client={client}>
       <UserProvider> {/* Wrap the entire application with UserProvider */}
+      <Elements stripe={stripePromise}>
         <div className="flex-column justify-flex-start min-100-vh">
           <Header />
           <Navbar /> {/* Navbar can now use the context for authentication */}
@@ -63,6 +80,7 @@ function App() {
           </Container>
           <Footer />
         </div>
+        </Elements>
       </UserProvider>
     </ApolloProvider>
   );
