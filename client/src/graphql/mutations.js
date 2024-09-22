@@ -33,10 +33,12 @@ mutation AddUser($username: String!, $email: String!, $password: String!) {
 // Mutation to add a new schedule
 
 export const ADD_SCHEDULE = gql`
-mutation AddSchedule($title: String!, $activities: [ActivityInput]) {
-  addSchedule(title: $title, activities: $activities) {
+mutation AddSchedule($title: String!, $activities: [ActivityInput], $category: Category!, $tags: [String]) {
+  addSchedule(title: $title, activities: $activities, category: $category, tags: $tags) {
     _id
     title
+    category
+    tags
     activities {
       _id
       title
@@ -136,7 +138,7 @@ mutation UpdateActivity($activityId: ID!, $title: String, $description: String, 
 export const ADD_RATING = gql`
   mutation AddRating($scheduleId: ID!, $rating: Int!) {
     addRating(scheduleId: $scheduleId, rating: $rating) {
-      _id
+      _id 
       title
       averageRating
       ratings {

@@ -60,7 +60,11 @@ const resolvers = {
       return user;
     },
 
-    getSchedules: async (_, { sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
+    getSchedules: async (_, { category, tags, sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
+
+      if (category) query.category = { $in: [category] };
+      if (tags) query.tags = { $in: tags };
+
       const sortFieldMap = {
           DateCreated: 'createdAt',
           DateUpdated: 'updatedAt',
@@ -78,7 +82,12 @@ const resolvers = {
       const sortField = sortFieldMap[sortBy];
       const order = sortOrderMap[sortOrder];
   
-      const schedules = await Schedule.find().sort({ [sortField]: order }).populate('activities');
+      const schedules = await Schedule.find().sort({ [sortField]: order }).populate('activities').populate('category');
+
+    
+
+
+
       return schedules;
   },
   
@@ -117,16 +126,21 @@ const resolvers = {
       });
     },
 
-    searchSchedules: async (_, { term }) => {
-      const schedules = await Schedule.find({
-        title: { $regex: new RegExp(term, 'i') },
-      }).populate('activities');
-      for (const schedule of schedules) {
+    searchSchedules: async (_, { term, category, tags }) => {
+      const query = {
+        title: { $regex: new RegExp(term, 'i') }
+    };
+
+    if (category) query.category = { $in: [category] };
+    if (tags) query.tags = { $in: tags };
+
+    const schedules = await Schedule.find(query).populate('activities');
+    for (const schedule of schedules) {
         const ratings = await Rating.find({ schedule: schedule._id }).populate('user');
         schedule.ratings = ratings;
-      }
-      return schedules;
-    },
+    }
+    return schedules;
+},
 
     checkUserRating: async (parent, { scheduleId }, context) => {
       if (!context.user) {
@@ -222,12 +236,11 @@ const resolvers = {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to rate schedules.');
       }
-  
-    
+
       try {
         // Check if rating already exists
         const existingRating = await Rating.findOne({ user: context.user._id, schedule: scheduleId });
-    
+
         // Update existing or create new rating
         if (existingRating) {
           existingRating.rating = rating;
@@ -235,11 +248,11 @@ const resolvers = {
         } else {
           await Rating.create({ user: context.user._id, schedule: scheduleId, rating });
         }
-    
+
         // Recalculate the average rating
         const ratings = await Rating.find({ schedule: scheduleId });
         const averageRating = ratings.reduce((acc, curr) => acc + curr.rating, 0) / (ratings.length || 1);
-    
+
         // Update the schedule with the new average rating
         const updatedSchedule = await Schedule.findByIdAndUpdate(
           scheduleId, 
@@ -257,12 +270,19 @@ const resolvers = {
             path: 'user',
             select: 'username'
           }
-        });
-    
+        })
+        .populate('category'); // Ensure category is populated
+
         if (!updatedSchedule) {
           throw new Error('Failed to fetch updated schedule');
         }
-    
+
+        // Ensure the schedule has a category, set to 'GENERAL' if null
+        if (!updatedSchedule.category) {
+          updatedSchedule.category = 'GENERAL';
+          await updatedSchedule.save(); // Save the schedule if category is missing and set to default
+        }
+
         return updatedSchedule;
       } catch (error) {
         console.error(`Error in addRating resolver: ${error}`);
@@ -270,106 +290,88 @@ const resolvers = {
       }
     },
     
-
-    addComment: async (parent, { scheduleId, comment }, context) => {
-      if (!context.user) {
-        throw new CustomAuthError('You must be logged in to comment on schedules.');
-      }
-      
-      try {
-        // Correctly creating a new ObjectId instance from the user's ID
-        const userId = new mongoose.Types.ObjectId(context.user._id);
-        
-        const updatedSchedule = await Schedule.findByIdAndUpdate(
-          scheduleId,
-          { 
-            $push: { 
-              comments: {
-                user: userId, 
-                comment: comment,
-                createdAt: new Date()
-              } 
-            }
-          },
-          { new: true }
-        )
-        .populate({
-          path: 'comments.user',
-          select: 'username'
-        });
     
-        if (!updatedSchedule) {
-          throw new Error('Failed to fetch updated schedule after adding comment');
-        }
-    
-        return updatedSchedule;
-      } catch (error) {
-        console.error(`Error in addComment resolver: ${error}`);
-        throw new Error('Error processing your comment.');
-      }
-    },
-    
-    
-    addSchedule: async (parent, { title, activities }, context) => {
+    addSchedule: async (parent, { title, activities, category, tags }, context) => {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to create a schedule.');
       }
 
-      try {
-        console.log("Creating new schedule with title:", title);
-        const schedule = await Schedule.create({ title });
-        console.log("Schedule created with ID:", schedule._id);
+      if (!category) {
+        category = 'GENERAL';
+      }
 
+      const validCategories = ['EXERCISE', 'NUTRITION', 'WORK_PRODUCTIVITY', 'HOBBIES_CRAFTS', 'EDUCATION', 'HOMELIFE', 'SOCIAL_LIFE', 'MINDFULNESS', 'GENERAL'];
+      if (!validCategories.includes(category)) {
+        throw new Error('Invalid or missing category');
+      }
+   
+    
+    
+      try {
+        // Create a new schedule with categories and tags
+        const schedule = await Schedule.create({
+          title,
+          category,
+          tags,
+          creator: context.user._id
+        });
+    
+        // Handle activities
+        let activityIds = [];
         if (activities && activities.length > 0) {
           console.log("Inserting activities:", activities);
           const activityDocs = await Activity.insertMany(
             activities.map(activity => ({
               ...activity,
-              startTime: new Date(activity.startTime), 
-              endTime: new Date(activity.endTime), 
+              startTime: new Date(activity.startTime),
+              endTime: new Date(activity.endTime),
               schedule: schedule._id
             }))
           );
-
-          if (activityDocs.length) {
-            const activityIds = activityDocs.map(doc => doc._id);
-            console.log("Activities created with IDs:", activityIds);
-            await Schedule.findByIdAndUpdate(schedule._id, { $set: { activities: activityIds } });
-            console.log("Schedule updated with activity IDs:", schedule._id);
-          } else {
-            console.log("No activities were created, check input data and model constraints.");
-          }
-        } else {
-          console.log("No activities provided to insert.");
+          activityIds = activityDocs.map(doc => doc._id);
+          await Schedule.findByIdAndUpdate(schedule._id, { $set: { activities: activityIds } });
         }
-
-        console.log("Linking schedule to user:", context.user._id);
+    
         await User.findByIdAndUpdate(
           context.user._id,
           { $push: { schedules: schedule._id } },
           { new: true }
         );
-
-        console.log("Fetching the complete schedule to return.");
-        const populatedSchedule = await Schedule.findById(schedule._id).populate('activities');
+    
+       
+        const populatedSchedule = await Schedule.findById(schedule._id)
+          .populate('activities')
+          .populate('creator', 'username'); // 
+    
         console.log("Returning populated schedule:", populatedSchedule);
-
         return populatedSchedule;
-      } catch (error) {
-        console.error("Error creating schedule:", error);
+      } catch ( error ) {
+        console.error("Error in addSchedule resolver:", error);
         throw new Error("Failed to create schedule due to an error.");
       }
     },
 
-    updateSchedule: async (parent, { scheduleId, title }, context) => {
+
+    updateSchedule: async (parent, { scheduleId, title, category, tags }, context) => {
       if (!context.user) {
-        throw new CustomAuthError('You must be logged in to update a schedule.');
+          throw new CustomAuthError('You must be logged in to update a schedule.');
       }
+      const update = { title };
+      if (category) update.category = category;
+      if (tags) update.tags = tags;
+  
       return Schedule.findByIdAndUpdate(
-        scheduleId,
-        { $set: { title: title } },
-        { new: true });
-    },
+          scheduleId,
+          { $set: update },
+          { new: true }
+      ).populate('activities').populate('comments.user').populate({
+          path: 'ratings',
+          populate: {
+              path: 'user',
+              select: 'username'
+          }
+      });
+  },
 
     deleteSchedule: async (parent, { scheduleId, userId }, context) => {
       if (!context.user) {

@@ -4,15 +4,13 @@ import { GET_SCHEDULES } from '../../graphql/queries';
 import { Link } from 'react-router-dom';
 import { ListGroup, Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import StarRating from './StarRating'; 
+import StarRating from './StarRating';
 import SortingComponent from './SortingComponent';
 
 function AllSchedules() {
-  // State variables to control sorting options
   const [sortBy, setSortBy] = useState('DateCreated');
   const [sortOrder, setSortOrder] = useState('NewestFirst');
 
-  // useQuery hook to fetch schedules data with sorting options
   const { loading, error, data } = useQuery(GET_SCHEDULES, {
     variables: { sortBy, sortOrder },
     pollInterval: 500,
@@ -47,6 +45,8 @@ function AllSchedules() {
               <ListGroup.Item key={schedule._id} className="border border-success text-center">
                 <Link to={`/schedule/${schedule._id}`} className="text-decoration-none" style={{ color: 'green' }}>
                   {schedule.title}
+                  <div>Category: {schedule.category || 'No Category'}</div>
+                  <div>Tags: {schedule.tags?.join(', ')}</div>
                   <StarRating rating={schedule.averageRating || 0} totalStars={5} />
                 </Link>
               </ListGroup.Item>
@@ -57,4 +57,5 @@ function AllSchedules() {
     </Container>
   );
 }
+
 export default AllSchedules;

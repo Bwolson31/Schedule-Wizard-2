@@ -25,7 +25,19 @@ const scheduleSchema = new Schema({
   averageRating: {
     type: Number, 
     default: 0
-  }
+  },
+     // Category field with predefined options
+category: {
+  type: String,
+  required: true,
+  enum: ['EXERCISE', 'NUTRITION', 'WORK_PRODUCTIVITY', 'HOBBIES_CRAFTS', 'EDUCATION', 'HOMELIFE', 'SOCIAL_LIFE', 'MINDFULNESS', 'GENERAL']
+},
+tags: [String],
+creator: {
+  type: Schema.Types.ObjectId,
+  ref: 'User',
+  required: true
+},
 }, { timestamps: true }); // Automatically add createdAt and updatedAt timestamps
 
 // Create a virtual relationship between schedule and rating model. Helps get related raitings for a schedule without needing to store them in the Schedule document. More Efficient. Cleaner. 

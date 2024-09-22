@@ -2,20 +2,26 @@ import React, { useState } from 'react';
 import { Button, Form, Container, Row, Col } from 'react-bootstrap';
 import { useMutation } from '@apollo/client';
 import { ADD_SCHEDULE } from '../../graphql/mutations';
+import CategorySelector from '../CategorySelector';
+import TagInput from '../TagInput'; 
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+
 
 function AddScheduleForm({ user }) {
   const [title, setTitle] = useState('');
   const [selectedDay, setSelectedDay] = useState(null);
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState([]);
   const [activities, setActivities] = useState(
     Array.from({ length: 7 }, () =>
-      Array(17).fill(null).map(() => ({
+      Array(17).fill().map(() => ({
         title: '',
         startTime: '',
         endTime: '',
         description: '',
-        day: '' // Add day field to each activity
+        day: ''
       }))
     )
   );
@@ -23,49 +29,48 @@ function AddScheduleForm({ user }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Submitting with activities:", activities);
     const formattedActivities = activities.flat().filter(activity => activity.title && activity.startTime && activity.endTime).map(activity => ({
       ...activity,
       startTime: parseTime(activity.startTime),
       endTime: parseTime(activity.endTime)
     }));
-    console.log("Formatted activities for submission:", formattedActivities);
 
     try {
-      const { data } = await addSchedule({
+      await addSchedule({
         variables: {
           title,
+          category,
+          tags,
           activities: formattedActivities,
         },
       });
-      document.location.replace('/');
-
-
-      // Reset activities
       setTitle('');
-      setActivities(Array.from({ length: 7 }, () => Array(17).fill({ title: '', startTime: '', endTime: '', description: '', day: '' })));
+      setCategory('');
+      setTags([]);
+      setActivities(Array.from({ length: 7 }, () => Array(17).fill().map(() => ({
+        title: '',
+        startTime: '',
+        endTime: '',
+        description: '',
+        day: ''
+      }))));
+      document.location.replace('/');  // Redirect after successful creation
     } catch (error) {
       console.error('Error creating schedule:', error);
-      if (error.graphQLErrors) {
-        console.error('GraphQL Errors:', JSON.stringify(error.graphQLErrors, null, 2));
-      }
-      if (error.networkError) {
-        console.error('Network Error:', JSON.stringify(error.networkError, null, 2));
-      }
-      alert('Failed to create schedule');
+      alert('Failed to create schedule. Error: ' + error.message);
+      console.log("Selected Category:", category);
+
     }
+
+    console.log("Submitting with category:", category);
+
   };
 
   const parseTime = (timeString) => {
     const [hours, minutes] = timeString.split(':').map(Number);
     const date = new Date();
-    date.setHours(hours, minutes, 0, 0); // This sets the time according to local timezone
-  
-    console.log("Time input string:", timeString);
-    console.log("Local time set:", date);
-    console.log("UTC time to be sent:", date.toISOString());
-  
-    return date.toISOString(); // sending the time in UTC
+    date.setHours(hours, minutes, 0, 0);
+    return date.toISOString();
   };
 
   const handleActivityChange = (dayIndex, hourIndex, field, value) => {
@@ -76,7 +81,6 @@ function AddScheduleForm({ user }) {
           )
         : day
     );
-  
     setActivities(updatedActivities);
   };
 
@@ -93,6 +97,16 @@ function AddScheduleForm({ user }) {
             required
             style={{ fontSize: '14px' }}
           />
+        </Form.Group>
+        
+        {/* Integrated Category Selector */}
+        <CategorySelector selectedCategory={category} onCategoryChange={setCategory} />
+
+
+        {/* Integrated TagInput */}
+        <Form.Group className="mb-3">
+          <Form.Label>Tags</Form.Label>
+          <TagInput tags={tags} setTags={setTags} /> {/* Pass tags and setTags to TagInput */}
         </Form.Group>
         <div className="d-flex flex-wrap justify-content-center mb-2">
           {daysOfWeek.map((day, dayIndex) => (

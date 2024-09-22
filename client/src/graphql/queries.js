@@ -78,6 +78,8 @@ query GetSchedules($sortBy: SortBy, $sortOrder: SortOrder) {
   getSchedules(sortBy: $sortBy, sortOrder: $sortOrder) {
     _id
     title
+    category
+    tags
     averageRating
     activities {
       _id

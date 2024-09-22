@@ -1,0 +1,45 @@
+.tag-input-field {
+    width: 100%; 
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+.tag-red {
+    display: inline-block;
+    padding: 5px 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    border-radius: 15px;
+    color: #ff4d4d; /* Red text */
+    cursor: pointer;
+    font-weight: normal;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .add-tag-button {
+    margin-top: 10px; /* Move the button lower */
+    padding: 6px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .add-tag-button:hover {
+    background-color: #45a049;
+  }
+  
+  .tag-red:hover {
+    font-weight: bold; /* Emboldens on hover */
+    text-decoration: underline; /* Underline on hover */
+  }
+  
+
+
+
+
+  

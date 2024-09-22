@@ -16,6 +16,8 @@ const typeDefs = `
     updatedAt: String
     ratingCount: Int
     averageRating: Float
+    category: Category!
+    tags: [String]
   }
 
   type Activity {
@@ -80,6 +82,19 @@ const typeDefs = `
     LowestFirst
   }
 
+  enum Category {
+    EXERCISE
+    NUTRITION
+    WORK_PRODUCTIVITY
+    HOBBIES_CRAFTS
+    EDUCATION
+    HOMELIFE
+    SOCIAL_LIFE
+    MINDFULNESS
+    GENERAL
+
+  }
+
   type Query {
     users: [User]
     user(username: String!): User
@@ -95,8 +110,8 @@ const typeDefs = `
   type Mutation {
     addUser(username: String!, email: String!, password: String!): Auth
     login(email: String!, password: String!): Auth
-    addSchedule(title: String!, activities: [ActivityInput]): Schedule
-    updateSchedule(scheduleId: ID!, title: String!): Schedule
+    addSchedule(title: String!, activities: [ActivityInput], category: Category!, tags: [String]): Schedule
+    updateSchedule(scheduleId: ID!, title: String!, category: Category!, tags: [String]): Schedule
     deleteSchedule(scheduleId: ID!): Schedule
     addActivity(scheduleId: ID!, activityData: ActivityInput!): Schedule
     removeActivity(activityId: ID!): Schedule
