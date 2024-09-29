@@ -61,35 +61,54 @@ const resolvers = {
     },
 
     getSchedules: async (_, { category, tags, sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
+      try {
+        // Initialize the query object
+        const query = {};
 
-      if (category) query.category = { $in: [category] };
-      if (tags) query.tags = { $in: tags };
+        // If a category is provided and it's not 'ALL', filter by that category
+        if (category && category !== 'ALL') {
+          query.category = category;
+        }
 
-      const sortFieldMap = {
+        // If tags are provided, filter by tags
+        if (tags) {
+          query.tags = { $in: tags };
+        }
+
+        // Sorting logic
+        const sortFieldMap = {
           DateCreated: 'createdAt',
           DateUpdated: 'updatedAt',
           Title: 'title',
-          Popularity: 'averageRating'
-      };
+          Popularity: 'averageRating',
+        };
   
-      const sortOrderMap = {
-        NewestFirst: -1,  
-        OldestFirst: 1,   
-        HighestFirst: -1,
-        LowestFirst: 1   
-    };
+        const sortOrderMap = {
+          NewestFirst: -1,  
+          OldestFirst: 1,   
+          HighestFirst: -1,
+          LowestFirst: 1,
+        };
   
-      const sortField = sortFieldMap[sortBy];
-      const order = sortOrderMap[sortOrder];
+        const sortField = sortFieldMap[sortBy];
+        const order = sortOrderMap[sortOrder];
   
-      const schedules = await Schedule.find().sort({ [sortField]: order }).populate('activities').populate('category');
+        // Fetch schedules based on query and sorting criteria
+        const schedules = await Schedule.find(query)
+          .sort({ [sortField]: order })
+          .populate('activities')
+          .populate('comments.user')
+          .populate({
+            path: 'ratings',
+            populate: { path: 'user', select: 'username' }
+          });
 
-    
-
-
-
-      return schedules;
-  },
+        return schedules;
+      } catch (error) {
+        console.error('Error fetching schedules:', error);
+        throw new Error('Failed to fetch schedules');
+      }
+    },
   
 
     getOneSchedule: async (parent, { scheduleId }) => {
@@ -117,6 +136,7 @@ const resolvers = {
       }
     },
 
+
     searchUsers: async (_, { term }) => {
       return User.find({
         $or: [
@@ -126,21 +146,63 @@ const resolvers = {
       });
     },
 
-    searchSchedules: async (_, { term, category, tags }) => {
-      const query = {
-        title: { $regex: new RegExp(term, 'i') }
-    };
+    searchSchedules: async (_, { query, category, tags }) => {
+      const searchQuery = {};
+    
+      // Use regex to match partial or exact tag/title matches
+      if (query) {
+        const formattedQuery = new RegExp(query, 'i'); // Case-insensitive partial match for titles and tags
+        searchQuery.$or = [
+          { title: { $regex: formattedQuery } },
+          { tags: { $regex: formattedQuery } }
+        ];
+      }
+    
+      // If category is selected, include it in the search query
+      if (category && category !== 'ALL') {
+        searchQuery.category = category;
+      }
+    
+      // If specific tags are selected, include them in the search query
+      if (tags && tags.length > 0) {
+        searchQuery.tags = { $in: tags };  // Match schedules that have any of the selected tags
+      }
 
-    if (category) query.category = { $in: [category] };
-    if (tags) query.tags = { $in: tags };
 
-    const schedules = await Schedule.find(query).populate('activities');
-    for (const schedule of schedules) {
-        const ratings = await Rating.find({ schedule: schedule._id }).populate('user');
-        schedule.ratings = ratings;
-    }
-    return schedules;
-},
+      return Schedule.find(searchQuery)
+      .populate('activities')
+      .populate({
+        path: 'ratings',
+        populate: {
+          path: 'user',
+          select: 'username'
+        }
+      });
+  },
+
+
+    
+    
+    fetchSchedulesByCategory: async (_, { category }) => {
+      const filterQuery = {};
+
+      // Add category to query if provided
+      if (category && category !== 'ALL') {
+        filterQuery.category = category;
+      }
+
+      try {
+        const schedules = await Schedule.find(filterQuery);
+        return schedules;
+      } catch (error) {
+        console.error('Error fetching schedules by category:', error);
+        throw new Error('Failed to fetch schedules by category');
+      }
+    },
+    
+    
+    
+    
 
     checkUserRating: async (parent, { scheduleId }, context) => {
       if (!context.user) {

@@ -17,6 +17,7 @@ import Update from './pages/Update.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CancelPage from './components/CancelPaymentPage.jsx';
 import PaymentSuccess from './components/PaymentSuccess.jsx';
+import AllSchedules from './components/schedules/AllSchedules.jsx';
 
 const router = createBrowserRouter([
   {
@@ -74,7 +75,12 @@ const router = createBrowserRouter([
       {
         path: "success",
         element: <PaymentSuccess />
+      },
+      {
+      path: "Categories",
+      element: <AllSchedules />
       }
+    
     ]
   },
 ]);

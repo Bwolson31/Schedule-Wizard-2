@@ -56,6 +56,7 @@ query Me($sortBy: SortBy, $sortOrder: SortOrder) {
     schedules {
       _id
       title
+      tags
       averageRating
       activities {
         _id
@@ -111,6 +112,7 @@ query GetSchedules($sortBy: SortBy, $sortOrder: SortOrder) {
 }
 `;
 
+
 export const GET_ONE_SCHEDULE = gql`
   query getOneSchedule($scheduleId: ID!) {
     getOneSchedule(scheduleId: $scheduleId) {
@@ -146,36 +148,40 @@ export const GET_ONE_SCHEDULE = gql`
 `
 
 export const SEARCH_USERS = gql`
-  query SearchUsers($term: String!) {
-    searchUsers(term: $term) {
+query SearchUsers($term: String!) {
+  searchUsers(term: $term) {
+    _id
+    username
+    email
+    schedules {
       _id
-      username
-      email
-      schedules {
-        _id
-        title
-      }
+      title
     }
   }
+}
+
 `;
 
 // Query for searching schedules
 export const SEARCH_SCHEDULES = gql`
-query SearchSchedules($term: String!) {
-  searchSchedules(term: $term) {
+query SearchSchedules($query: String!, $category: Category, $tags: [String], $sortBy: SortBy, $sortOrder: SortOrder) {
+  searchSchedules(query: $query, category: $category, tags: $tags, sortBy: $sortBy, sortOrder: $sortOrder) {
     _id
     title
+    category
+    averageRating
+    tags
     activities {
       _id
       description
       startTime
       endTime
       title
-      day
     }
   }
 }
 `;
+
 
 
 // Query to fetch rated schedules
@@ -195,3 +201,16 @@ export const GET_RATED_SCHEDULES = gql`
     }
   }
 `;
+
+export const FETCH_SCHEDULES_BY_CATEGORY = gql`
+  query FetchSchedulesByCategory($category: String!) {
+    fetchSchedulesByCategory(category: $category) {
+      _id
+      title
+      category
+      tags
+    }
+  }
+`;
+
+

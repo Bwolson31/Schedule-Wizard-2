@@ -30,7 +30,8 @@ const scheduleSchema = new Schema({
 category: {
   type: String,
   required: true,
-  enum: ['EXERCISE', 'NUTRITION', 'WORK_PRODUCTIVITY', 'HOBBIES_CRAFTS', 'EDUCATION', 'HOMELIFE', 'SOCIAL_LIFE', 'MINDFULNESS', 'GENERAL']
+  enum: ['EXERCISE', 'NUTRITION', 'WORK_PRODUCTIVITY', 'HOBBIES_CRAFTS', 'EDUCATION', 'HOMELIFE', 'SOCIAL_LIFE', 'MINDFULNESS', 'GENERAL', 'ALL'],
+  default: 'GENERAL',
 },
 tags: [String],
 creator: {

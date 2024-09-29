@@ -1,9 +1,27 @@
+/* Container for the star rating */
+.star-rating {
+  display: flex;
+  justify-content: center; 
+  flex-wrap: wrap; 
+  gap: 5px; 
+  padding: 10px 0; 
+}
+
+/* Styles for individual stars */
 .star-rating .star {
-    cursor: pointer;
-    color: #d3d3d3; /* Light grey color for unfilled stars */
-    font-size: 24px;
+  cursor: pointer;
+  color: #d3d3d3; 
+  font-size: 24px;
+}
+
+/* Styles for filled stars */
+.star-rating .star.filled {
+  color: #ffc107; 
+}
+
+/* Make stars smaller and adjust layout on smaller screens */
+@media (max-width: 576px) {
+  .star-rating .star {
+    font-size: 20px; 
   }
-  
-  .star-rating .star.filled {
-    color: #ffc107; /* Gold color for filled stars */
-  }
+}

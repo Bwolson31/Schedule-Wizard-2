@@ -1,0 +1,32 @@
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; 
+    gap: 8px; 
+    margin-top: 10px; 
+  }
+  
+  .category-container {
+    margin-top: 10px; 
+  }
+  
+
+  .tags-container span, 
+  .tags-container a {
+    white-space: nowrap; 
+    padding: 5px 10px;
+    background-color: #e9ecef;
+    border-radius: 20px;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  
+  .tags-container span:hover, 
+  .tags-container a:hover {
+    background-color: #28a745;
+    color: white;
+  }
+  

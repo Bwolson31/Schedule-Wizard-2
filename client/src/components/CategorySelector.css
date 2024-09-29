@@ -1,0 +1,35 @@
+
+.category-selector-wrapper {
+    margin-bottom: 20px;
+  }
+  
+  .category-selector {
+    width: 100%; 
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #4CAF50; 
+    border-radius: 5px;
+    background-color: #f9f9f9; 
+    color: #333; 
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  
+  .category-selector:focus {
+    border-color: #45a049; 
+    box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
+    outline: none;
+  }
+  
+  .category-selector option {
+    background-color: #fff;
+    color: #333;
+    padding: 10px;
+  }
+  
+
+  .category-selector:hover {
+    border-color: #45a049; 
+  }
+  

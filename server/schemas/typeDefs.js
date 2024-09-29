@@ -92,6 +92,7 @@ const typeDefs = `
     SOCIAL_LIFE
     MINDFULNESS
     GENERAL
+    ALL
 
   }
 
@@ -99,13 +100,17 @@ const typeDefs = `
     users: [User]
     user(username: String!): User
     me(sortBy: SortBy, sortOrder: SortOrder): User
-    getSchedules(sortBy: SortBy, sortOrder: SortOrder): [Schedule]
+    getSchedules(category: Category, tags: [String], sortBy: SortBy, sortOrder: SortOrder): [Schedule]  
     getOneSchedule(scheduleId: ID!): Schedule
     searchUsers(term: String!): [User]
-    searchSchedules(term: String!, sortBy: SortBy, sortOrder: SortOrder): [Schedule]
+    searchSchedules(query: String!, sortBy: SortBy, sortOrder: SortOrder, category: Category, tags: [String]): [Schedule]
     checkUserRating(scheduleId: ID!): Rating
     getRatedSchedules(sortBy: SortBy, sortOrder: SortOrder): [RatedSchedule]
+    fetchSchedulesByCategory(category: String!): [Schedule]
   }
+  
+  
+  
 
   type Mutation {
     addUser(username: String!, email: String!, password: String!): Auth

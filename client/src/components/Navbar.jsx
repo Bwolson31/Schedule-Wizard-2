@@ -1,33 +1,44 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-//import { useAuth } from '../auth/AuthContext';
 import Auth from '../auth/auth';
-import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Navbar as BootstrapNavbar, Nav, Container, NavDropdown, Button } from 'react-bootstrap';
+import { categoryOptions } from './CategorySelector';
+import './Navbar.css';
 
-const NavbarComponent = () => {
-  //const { isAuthenticated, user, logout } = useAuth();
-  //const navigate = useNavigate();
+const Navbar = () => {
+  const navigate = useNavigate();
 
-  // const handleLogout = () => {
-  //   logout();
-  //   navigate('/');
-  // };
-
-  //console.log('Navbar - User:', user);
+  const handleCategorySelect = (category) => {
+    navigate(`/search?category=${category}`);
+  };
 
   return (
-    <Navbar bg="green" expand="lg">
+    <BootstrapNavbar expand="lg" className="custom-navbar" variant="light">
       <Container>
-        <Navbar.Brand as={Link} to="/" className='ms-auto'>Home</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto">
-            {/* {isAuthenticated && user ? ( */}
+        <BootstrapNavbar.Brand as={Link} to="/" className="navbar-brand">
+          ScheduleWizard
+        </BootstrapNavbar.Brand>
+        <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
+        <BootstrapNavbar.Collapse id="basic-navbar-nav">
+          <Nav className="ms-auto align-items-center">
+            {/* Categories Dropdown */}
+            <NavDropdown title="Categories" id="category-dropdown" align="end">
+              {categoryOptions.map(option => (
+                <NavDropdown.Item
+                  key={option.value}
+                  onClick={() => handleCategorySelect(option.value)}
+                >
+                  {option.label}
+                </NavDropdown.Item>
+              ))}
+            </NavDropdown>
+
+            {/* Links based on authentication */}
             {Auth.loggedIn() ? (
               <>
                 <Nav.Link as={Link} to='/profile/'>Profile</Nav.Link>
                 <Nav.Link as={Link} to="/create-schedule">Create Schedule</Nav.Link>
-                <Nav.Link onClick={Auth.logout}>Logout</Nav.Link>
+                <Button variant="outline-light" onClick={Auth.logout} className="logout-btn">Logout</Button>
               </>
             ) : (
               <>
@@ -36,9 +47,10 @@ const NavbarComponent = () => {
               </>
             )}
           </Nav>
-        </Navbar.Collapse>
+        </BootstrapNavbar.Collapse>
       </Container>
-    </Navbar>
+    </BootstrapNavbar>
   );
 };
-export default NavbarComponent; 
+
+export default Navbar;

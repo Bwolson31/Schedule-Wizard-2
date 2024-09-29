@@ -1,7 +1,7 @@
 import './Profile.css';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Container, Row, Col, Card, ListGroup, Button, Alert, ButtonGroup } from 'react-bootstrap';
+import { Container, Row, Col, Card, ListGroup, Button, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { ME } from '../graphql/queries';
 import { DELETE_SCHEDULE, REMOVE_ACTIVITY, UPDATE_ACTIVITY } from '../graphql/mutations';
@@ -11,6 +11,7 @@ import RemoveActivityButton from '../components/schedules/RemoveActivityButton';
 import AuthService from '../auth/auth.js';
 import StarRating from '../components/schedules/StarRating.jsx';
 import SortingComponent from '../components/schedules/SortingComponent';
+import HashtagLink from '../components/HashtagLink.jsx';
 
 function Profile() {
     const [userProfile, setUserProfile] = useState(null);
@@ -30,17 +31,19 @@ function Profile() {
 
     const { loading, error, data, refetch } = useQuery(ME, {
         variables: { sortBy, sortOrder },
-        skip: !userProfile, // Skip the query if the user is not logged in
+        skip: !userProfile, 
     });
 
     const [deleteSchedule] = useMutation(DELETE_SCHEDULE, {
         onCompleted: () => refetch(),
         onError: (error) => console.error('Error deleting schedule:', error)
     });
+
     const [removeActivity] = useMutation(REMOVE_ACTIVITY, {
         onCompleted: () => refetch(),
         onError: (error) => console.error('Error removing activity:', error)
     });
+
     const [updateActivity] = useMutation(UPDATE_ACTIVITY, {
         onCompleted: () => refetch(),
         onError: (error) => console.error('Error updating activity:', error)
@@ -57,6 +60,7 @@ function Profile() {
     if (error) return <Container className="mt-5"><Alert variant="danger">Error: {error.message}</Alert></Container>;
 
     const userData = data?.me || {};
+    const schedules = userData.schedules || [];
 
     const handleDeleteSchedule = async (scheduleId) => {
         await deleteSchedule({ variables: { scheduleId, userId: userData._id } });
@@ -69,7 +73,6 @@ function Profile() {
     const handleUpdateActivity = async (activityId, title, description) => {
         await updateActivity({ variables: { activityId, title, description } });
     };
-
 
     return (
         <Container className="mt-5">
@@ -94,10 +97,10 @@ function Profile() {
                 <Col md={{ span: 8, offset: 2 }}>
                     <h2 className="text-center mb-4 text-success">Your Schedules</h2>
                     <SortingComponent sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />
-                    {userData.schedules.length === 0 ? (
+                    {schedules.length === 0 ? (
                         <Alert variant="info">No schedules available</Alert>
                     ) : (
-                        userData.schedules.map(schedule => (
+                        schedules.map(schedule => (
                             <Card key={schedule._id} className="mb-3">
                                 <Card.Header as="h5" className="bg-success text-white d-flex justify-content-between align-items-center">
                                     <Link to={`/schedule/${schedule._id}`} className="text-white">
@@ -105,6 +108,16 @@ function Profile() {
                                         <StarRating rating={Math.round(schedule.averageRating || 0)} />
                                     </Link>
                                     <div>
+                                        {/* Ensure tags are visible */}
+                                        <div className="tags-container">
+                                            {schedule.tags && schedule.tags.length > 0 ? (
+                                                schedule.tags.map((tag, index) => (
+                                                    <HashtagLink key={index} tag={tag} />
+                                                ))
+                                            ) : (
+                                                <span className="no-tags">No tags</span>
+                                            )}
+                                        </div>
                                         <Button variant="info" onClick={() => { document.location.replace(`/update/${schedule._id}`) }}>Update</Button>
                                         <Button variant="danger" onClick={() => handleDeleteSchedule(schedule._id)}>Delete</Button>
                                     </div>
@@ -133,3 +146,5 @@ function Profile() {
 }
 
 export default Profile;
+
+
