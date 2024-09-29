@@ -1,45 +1,53 @@
+.tag-input-container {
+  display: flex;
+  flex-direction: column; 
+}
+
 .tag-input-field {
-    width: 100%; 
-    padding: 8px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
+  width: 100%; 
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 15px; 
+}
 
-.tag-red {
-    display: inline-block;
-    padding: 5px 10px;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    border-radius: 15px;
-    color: #ff4d4d; /* Red text */
-    cursor: pointer;
-    font-weight: normal;
-    text-decoration: none;
-    transition: all 0.3s ease;
-  }
+.add-tag-button {
+  padding: 6px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 10%; 
+}
 
-  .add-tag-button {
-    margin-top: 10px; /* Move the button lower */
-    padding: 6px 12px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+.add-tag-button:hover {
+  background-color: #45a049;
+}
 
-  .add-tag-button:hover {
-    background-color: #45a049;
-  }
-  
-  .tag-red:hover {
-    font-weight: bold; /* Emboldens on hover */
-    text-decoration: underline; /* Underline on hover */
-  }
-  
+.tag-list-container {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+}
 
+.tag-pill {
+  display: inline-block;
+  padding: 5px 10px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  background-color: #e0e0e0;
+  border-radius: 15px;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
-
-
-  
+.tag-pill:hover {
+  background-color: #ff4d4d; /* Red background when hovering */
+  color: white; /* White text when hovering */
+  font-weight: bold;
+  text-decoration: none;
+}

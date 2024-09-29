@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './TagInput.css';
+
 const TagInput = ({ tags, setTags }) => {
   const [input, setInput] = useState('');
 
@@ -7,41 +8,45 @@ const TagInput = ({ tags, setTags }) => {
     setInput(e.target.value);
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = (e) => {
+    e.preventDefault(); // Prevent form submission
+
     if (input.trim() !== '') {
       const newTags = input.split(' ').map(tag => `#${tag.trim()}`);
       setTags([...tags, ...newTags]);
-      setInput('');
+      setInput(''); // Clear input after adding tag
     } else {
       alert('Tags cannot be empty.');
     }
   };
 
   const handleRemoveTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter(tag => tag !== tagToRemove)); // Remove the clicked tag
   };
 
   return (
     <div>
-      <input
-        type="text"
-        value={input}
-        onChange={handleInputChange}
-        placeholder="Add tags"
-        className="tag-input-field"
-      />
-      <button onClick={handleAddTag} className="add-tag-button">Add Tag</button>
-      <ul className="tag-list">
+      <div className="tag-input-container">
+        <input
+          type="text"
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Add tags"
+          className="tag-input-field"
+        />
+        <button type="button" onClick={handleAddTag} className="add-tag-button">Add Tag</button>
+      </div>
+      <div className="tag-list-container">
         {tags.map((tag, index) => (
-          <li
+          <span
             key={index}
-            className="tag-red" // Applying the red tag style
-            onClick={() => handleRemoveTag(tag)} // Clicking the tag removes it
+            className="tag-pill"
+            onClick={() => handleRemoveTag(tag)}  // Clicking a tag removes it
           >
-            {tag}
-          </li>
+            {tag} &times;
+          </span>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };

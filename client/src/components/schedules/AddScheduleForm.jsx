@@ -7,8 +7,6 @@ import TagInput from '../TagInput';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-
-
 function AddScheduleForm({ user }) {
   const [title, setTitle] = useState('');
   const [selectedDay, setSelectedDay] = useState(null);
@@ -28,7 +26,7 @@ function AddScheduleForm({ user }) {
   const [addSchedule] = useMutation(ADD_SCHEDULE);
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event.preventDefault();  // Only submit when this button is clicked
     const formattedActivities = activities.flat().filter(activity => activity.title && activity.startTime && activity.endTime).map(activity => ({
       ...activity,
       startTime: parseTime(activity.startTime),
@@ -44,6 +42,7 @@ function AddScheduleForm({ user }) {
           activities: formattedActivities,
         },
       });
+      // Reset form fields after successful creation
       setTitle('');
       setCategory('');
       setTags([]);
@@ -58,12 +57,7 @@ function AddScheduleForm({ user }) {
     } catch (error) {
       console.error('Error creating schedule:', error);
       alert('Failed to create schedule. Error: ' + error.message);
-      console.log("Selected Category:", category);
-
     }
-
-    console.log("Submitting with category:", category);
-
   };
 
   const parseTime = (timeString) => {
@@ -102,12 +96,13 @@ function AddScheduleForm({ user }) {
         {/* Integrated Category Selector */}
         <CategorySelector selectedCategory={category} onCategoryChange={setCategory} />
 
-
         {/* Integrated TagInput */}
         <Form.Group className="mb-3">
           <Form.Label>Tags</Form.Label>
           <TagInput tags={tags} setTags={setTags} /> {/* Pass tags and setTags to TagInput */}
         </Form.Group>
+
+        {/* Day and Activities Input */}
         <div className="d-flex flex-wrap justify-content-center mb-2">
           {daysOfWeek.map((day, dayIndex) => (
             <div key={dayIndex} className="p-1">
@@ -122,6 +117,7 @@ function AddScheduleForm({ user }) {
             </div>
           ))}
         </div>
+
         {selectedDay !== null && (
           <Row>
             <Col>
@@ -169,7 +165,9 @@ function AddScheduleForm({ user }) {
           </Row>
         )}
         <div className="text-center mt-3">
-          <Button type="submit" variant="success" className="animated-button" style={{ padding: '10px 20px' }}>Create Schedule</Button>
+          <Button type="submit" variant="success" className="animated-button" style={{ padding: '10px 20px' }}>
+            Create Schedule
+          </Button>
         </div>
       </Form>
     </Container>
