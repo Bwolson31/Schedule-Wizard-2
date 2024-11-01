@@ -1,32 +1,130 @@
+/* General container styling */
+.container {
+  max-width: 5000px;
+  margin: 0 auto;
+}
 
+/* Title Styling */
+.custom-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #28a745;
+  margin-bottom: 1.5rem;
+}
+
+/* Schedule Item Styling */
+.schedule-item {
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Schedule Title Styling */
+.schedule-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.schedule-title:hover {
+  text-decoration: underline;
+}
+
+/* Category and Tags Styling */
+.category-container, .tags-container {
+  margin-top: 10px;
+}
+
+/* Updated tags container for flex display and wrapping */
 .tags-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center; 
-    gap: 8px; 
-    margin-top: 10px; 
-  }
-  
-  .category-container {
-    margin-top: 10px; 
-  }
-  
+  display: flex;
+  flex-wrap: wrap; /* Allow tags to wrap onto new lines */
+  gap: 10px; /* Space between tags */
+}
 
-  .tags-container span, 
-  .tags-container a {
-    white-space: nowrap; 
-    padding: 5px 10px;
-    background-color: #e9ecef;
-    border-radius: 20px;
-    color: #007bff;
-    text-decoration: none;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
-  
-  .tags-container span:hover, 
-  .tags-container a:hover {
-    background-color: #28a745;
-    color: white;
-  }
-  
+/* Category and Tag Styling */
+.category-container span, .tags-container a {
+  display: inline-block;
+  background-color: #e9ecef;
+  border-radius: 20px;
+  padding: 5px 15px;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* Hover effects for categories and tags */
+.category-container span:hover, .tags-container a:hover {
+  background-color: #28a745;
+  color: white;
+}
+
+/* Star Rating Styling */
+.star-rating {
+  margin-top: 10px;
+}
+
+/* Button Container */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+button {
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+/* Edit/Delete Buttons */
+.edit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  margin-right: 8px;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Activity Buttons */
+.activity-item {
+  margin-top: 10px;
+  padding: 0.75rem;
+  border-radius: 4px;
+  background-color: #f1f3f5;
+}
+
+.activity-footer {
+  background-color: #f8f9fa;
+  border-top: none;
+}
+
+/* Add Activity Button */
+.add-activity-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+}
+
+.add-activity-button:hover {
+  background-color: #218838;
+}

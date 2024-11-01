@@ -12,16 +12,12 @@ class AuthService {
   loggedIn() {
     const token = this.getToken();
     const isExpired = token ? this.isTokenExpired(token) : true;
-    console.log("Token valid: ", !isExpired);
     return !!token && !isExpired;
   }
 
   isTokenExpired(token) {
     try {
       const decoded = decode(token);
-      console.log("Decoded token:", decoded);
-      console.log("Token expiry timestamp:", decoded.exp);
-      console.log("Current timestamp:", Date.now() / 1000);
 
       if (decoded.exp < Date.now() / 1000) {
         localStorage.removeItem('id_token');  
@@ -37,7 +33,6 @@ class AuthService {
 
   getToken() {
     const token = localStorage.getItem('id_token');
-    console.log("Retrieving token from storage:", token);
     return token;
   }
 

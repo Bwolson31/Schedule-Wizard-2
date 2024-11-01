@@ -37,6 +37,7 @@ const typeDefs = `
   }
 
   type Comment {
+    _id: ID
     user: User
     comment: String
     createdAt: String
@@ -44,8 +45,8 @@ const typeDefs = `
 
   input ActivityInput {
     title: String
-    startTime: String
-    endTime: String
+    startTime: String!
+    endTime: String!
     description: String
     day: String
   }
@@ -78,8 +79,8 @@ const typeDefs = `
   enum SortOrder {
     NewestFirst
     OldestFirst
-    HighestFirst
-    LowestFirst
+    Descending
+    Ascending
   }
 
   enum Category {
@@ -106,7 +107,7 @@ const typeDefs = `
     searchSchedules(query: String!, sortBy: SortBy, sortOrder: SortOrder, category: Category, tags: [String]): [Schedule]
     checkUserRating(scheduleId: ID!): Rating
     getRatedSchedules(sortBy: SortBy, sortOrder: SortOrder): [RatedSchedule]
-    fetchSchedulesByCategory(category: String!): [Schedule]
+    fetchSchedulesByCategory(category: String): [Schedule]
   }
   
   
@@ -116,7 +117,7 @@ const typeDefs = `
     addUser(username: String!, email: String!, password: String!): Auth
     login(email: String!, password: String!): Auth
     addSchedule(title: String!, activities: [ActivityInput], category: Category!, tags: [String]): Schedule
-    updateSchedule(scheduleId: ID!, title: String!, category: Category!, tags: [String]): Schedule
+    updateSchedule(scheduleId: ID!, title: String!, category: Category, tags: [String]): Schedule
     deleteSchedule(scheduleId: ID!): Schedule
     addActivity(scheduleId: ID!, activityData: ActivityInput!): Schedule
     removeActivity(activityId: ID!): Schedule
@@ -124,6 +125,9 @@ const typeDefs = `
     addRating(scheduleId: ID!, rating: Int!): Schedule
     addComment(scheduleId: ID!, comment: String!): Schedule
     createDonationSession(amount: Float!): SessionResponse
+    updateCategory(scheduleId: ID!, category: Category!): Schedule
+    updateTags(scheduleId: ID!, tags: [String]!): Schedule
+    deleteTag(scheduleId: ID!, tag: String!): Schedule
   }
  `;
 

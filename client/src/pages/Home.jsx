@@ -1,8 +1,6 @@
 import React from 'react';
-import AllSchedules from '../components/schedules/AllSchedules';
 import { Container, Row, Col, Card } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-
+import AllSchedules from '../components/schedules/AllSchedules';
 
 function Home() {
   return (
@@ -17,11 +15,7 @@ function Home() {
               </Card.Text>
             </Card.Body>
           </Card>
-        </Col>
-      </Row>
-      <Row className="mt-4">
-        <Col>
-          <AllSchedules />
+          <AllSchedules title="All Schedules" />
         </Col>
       </Row>
     </Container>
@@ -29,4 +23,3 @@ function Home() {
 }
 
 export default Home;
-

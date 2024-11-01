@@ -7,16 +7,17 @@ import RatingForm from './RatingForm';
 import StarRating from './StarRating';
 import CommentForm from './CommentForm';
 import UserComment from './UserComment';
+import CategoryLink from '../CategoryLink'; 
+import HashtagLink from '../HashtagLink';   
 
 function ScheduleDetail() {
   const { scheduleId } = useParams();
-  const { loading, error, data, refetch } = useQuery(GET_ONE_SCHEDULE, {
+  const { loading, error, data } = useQuery(GET_ONE_SCHEDULE, {
     variables: { scheduleId },
     fetchPolicy: "network-only"
   });
 
   useEffect(() => {
-    console.log('Current average rating:', data?.getOneSchedule?.averageRating);
   }, [data]);
 
   if (loading) return <div>Loading...</div>;
@@ -35,10 +36,8 @@ function ScheduleDetail() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
-
   const handleCommentAdded = () => {
     console.log("Comment was added!");
-    
   };
 
   return (
@@ -50,6 +49,19 @@ function ScheduleDetail() {
               <h2>
                 {scheduleData.title} <StarRating rating={scheduleData.averageRating || 0} />
               </h2>
+             <CategoryLink category={scheduleData.category} />
+              {scheduleData.tags && scheduleData.tags.length > 0 && (
+                <div>
+                  <ul className="list-inline">
+                    {scheduleData.tags.map((tag) => (
+                      <li key={tag} className="list-inline-item">
+                        <HashtagLink tag={tag} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
               <RatingForm scheduleId={scheduleId} refetch={refetch} />
               <ul className="list-unstyled">
                 {activities.map(activity => (
@@ -64,7 +76,7 @@ function ScheduleDetail() {
               {comments.length > 0 && (
                 <div>
                   <h4>Comments:</h4>
-                  {comments.map(comment => (
+                  {comments.map((comment) => (
                     <UserComment key={comment._id} comment={comment} />
                   ))}
                 </div>

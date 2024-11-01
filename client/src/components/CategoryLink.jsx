@@ -5,7 +5,7 @@ const CategoryLink = ({ category }) => {
   const navigate = useNavigate();
 
   const handleCategoryClick = () => {
-    // Trigger search with the category as a query parameter
+    // Redirect to the search page with the category
     navigate(`/search?category=${category}`);
   };
 

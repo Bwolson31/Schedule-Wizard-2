@@ -21,6 +21,8 @@ export default function Update() {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
+
+        console.log({ scheduleId, title });
         try {
        
             const { data } = await updateSchedule({

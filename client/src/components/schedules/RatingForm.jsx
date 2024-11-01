@@ -36,7 +36,6 @@ const RatingForm = ({ scheduleId, refetch }) => {
 
   const handleSubmit = () => {
     if (currentUser) {  // Ensure there is a logged-in user
-        console.log("Attempting to rate:", rating); // Check if this logs
         addRating();
     } else {
         console.error("You must be logged in to rate.");

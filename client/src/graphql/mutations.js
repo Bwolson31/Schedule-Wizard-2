@@ -1,7 +1,6 @@
 import { gql } from '@apollo/client';
 
-//mutation to login a user
-//Below is tested and working.
+
 export const LOGIN_USER = gql`
 mutation Login($email: String!, $password: String!) {
   login(email: $email, password: $password) {
@@ -15,8 +14,7 @@ mutation Login($email: String!, $password: String!) {
 }
 `;
 
-//mutation for signing up a new user
-//Below is tested and working.
+
 export const ADD_USER = gql`
 mutation AddUser($username: String!, $email: String!, $password: String!) {
   addUser(username: $username, email: $email, password: $password) {
@@ -30,7 +28,6 @@ mutation AddUser($username: String!, $email: String!, $password: String!) {
 }
 `;
 
-// Mutation to add a new schedule
 
 export const ADD_SCHEDULE = gql`
 mutation AddSchedule($title: String!, $activities: [ActivityInput], $category: Category!, $tags: [String]) {
@@ -52,27 +49,26 @@ mutation AddSchedule($title: String!, $activities: [ActivityInput], $category: C
 `;
 
 
-// Mutation to update an existing schedule
-
 export const UPDATE_SCHEDULE = gql`
-mutation updateSchedule($scheduleId: ID!, $title: String!) {
-  updateSchedule(scheduleId: $scheduleId, title: $title) {
-    _id
-    title
-    activities {
+  mutation updateSchedule($scheduleId: ID!, $title: String!, $category: Category, $tags: [String]) {
+    updateSchedule(scheduleId: $scheduleId, title: $title, category: $category, tags: $tags) {
       _id
       title
-      startTime
-      endTime
-      description
-      day
+      category
+      tags
+      activities {
+        _id
+        title
+        description
+        startTime
+        endTime
+        day
+      }
     }
   }
-}
 `;
 
-// Mutation to delete a schedule
-//Below is tested and works. Note, it also excludes 'activities' for now
+
 export const DELETE_SCHEDULE = gql`
   mutation DeleteSchedule($scheduleId: ID!) {
     deleteSchedule(scheduleId: $scheduleId) {
@@ -87,7 +83,6 @@ export const DELETE_SCHEDULE = gql`
 `;
 
 
-//Tested and working
 export const ADD_ACTIVITY = gql`
 mutation AddActivity($scheduleId: ID!, $activityData: ActivityInput!) {
   addActivity(scheduleId: $scheduleId, activityData: $activityData) {
@@ -104,7 +99,7 @@ mutation AddActivity($scheduleId: ID!, $activityData: ActivityInput!) {
   }
 }
 `;
-//Tested and working
+
 export const REMOVE_ACTIVITY = gql`
 mutation RemoveActivity($activityId: ID!) {
   removeActivity(activityId: $activityId) {
@@ -133,7 +128,9 @@ mutation UpdateActivity($activityId: ID!, $title: String, $description: String, 
     description
     day
   }
-}`
+}
+`;
+
 
 export const ADD_RATING = gql`
   mutation AddRating($scheduleId: ID!, $rating: Int!) {
@@ -153,13 +150,14 @@ export const ADD_RATING = gql`
   }
 `;
 
-// Mutation to add a comment to a schedule
+
 export const ADD_COMMENT = gql`
   mutation AddComment($scheduleId: ID!, $comment: String!) {
     addComment(scheduleId: $scheduleId, comment: $comment) {
       _id
       title
       comments {
+        _id
         user {
           _id
           username
@@ -171,7 +169,7 @@ export const ADD_COMMENT = gql`
   }
 `;
 
-// Query to check user rating
+
 export const CHECK_USER_RATING = gql`
   query CheckUserRating($scheduleId: ID!) {
     checkUserRating(scheduleId: $scheduleId) {
@@ -193,6 +191,34 @@ mutation CreateDonationSession($amount: Float!) {
     successUrl
     cancelUrl
     error
+  }
+}
+`;
+
+export const UPDATE_CATEGORY = gql`
+mutation updateCategory($scheduleId: ID!, $category: Category!) {
+  updateCategory(scheduleId: $scheduleId, category: $category) {
+    _id
+    category
+  }
+}
+`;
+
+export const UPDATE_TAGS = gql`
+mutation updateTags($scheduleId: ID!, $tags: [String]!) {
+  updateTags(scheduleId: $scheduleId, tags: $tags) {
+    _id
+    tags
+  }
+}
+`;
+
+
+export const DELETE_TAGS = gql`
+mutation deleteTag($scheduleId: ID!, $tag: String!) {
+  deleteTag(scheduleId: $scheduleId, tag: $tag) {
+    _id
+    tags
   }
 }
 `;

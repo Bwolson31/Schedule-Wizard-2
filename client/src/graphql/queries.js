@@ -56,6 +56,7 @@ query Me($sortBy: SortBy, $sortOrder: SortOrder) {
     schedules {
       _id
       title
+      category
       tags
       averageRating
       activities {
@@ -119,6 +120,8 @@ export const GET_ONE_SCHEDULE = gql`
       _id
       title
       averageRating
+      category
+      tags
       activities {
         _id
         title
@@ -136,6 +139,7 @@ export const GET_ONE_SCHEDULE = gql`
         createdAt
       }
       comments {
+        _id
         user {
           _id
           username
@@ -203,7 +207,7 @@ export const GET_RATED_SCHEDULES = gql`
 `;
 
 export const FETCH_SCHEDULES_BY_CATEGORY = gql`
-  query FetchSchedulesByCategory($category: String!) {
+  query FetchSchedulesByCategory($category: String) {
     fetchSchedulesByCategory(category: $category) {
       _id
       title
@@ -212,5 +216,8 @@ export const FETCH_SCHEDULES_BY_CATEGORY = gql`
     }
   }
 `;
+
+
+
 
 

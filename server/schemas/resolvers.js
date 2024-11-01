@@ -40,60 +40,60 @@ const resolvers = {
     },
 
     me: async (parent, { sortBy, sortOrder }, context) => {
-      console.log('Resolver - Context', context.user); 
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to perform this action.');
       }
-
+    
       const sort = {};
       if (sortBy && sortOrder) {
         sort[sortBy.toLowerCase()] = sortOrder === 'ASC' ? 1 : -1;
+      } else {
+        sort['dateCreated'] = -1; // Default sorting if none provided
       }
-
+    
+      // Find the user by ID and populate only the user's schedules
       const user = await User.findById(context.user._id).populate({
         path: 'schedules',
         options: {
           sort,
         },
       });
-
+    
       return user;
     },
+    
+    
 
     getSchedules: async (_, { category, tags, sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
       try {
-        // Initialize the query object
         const query = {};
-
-        // If a category is provided and it's not 'ALL', filter by that category
+    
         if (category && category !== 'ALL') {
           query.category = category;
         }
-
-        // If tags are provided, filter by tags
         if (tags) {
           query.tags = { $in: tags };
         }
-
-        // Sorting logic
+    
+        // Mapping frontend sort options to database fields
         const sortFieldMap = {
           DateCreated: 'createdAt',
           DateUpdated: 'updatedAt',
           Title: 'title',
           Popularity: 'averageRating',
         };
-  
+    
+        // Mapping frontend order labels directly to numeric values for MongoDB
         const sortOrderMap = {
-          NewestFirst: -1,  
-          OldestFirst: 1,   
-          HighestFirst: -1,
-          LowestFirst: 1,
+          NewestFirst: -1,
+          OldestFirst: 1,
+          Descending: -1,
+          Ascending: 1
         };
-  
+    
         const sortField = sortFieldMap[sortBy];
         const order = sortOrderMap[sortOrder];
-  
-        // Fetch schedules based on query and sorting criteria
+    
         const schedules = await Schedule.find(query)
           .sort({ [sortField]: order })
           .populate('activities')
@@ -102,13 +102,15 @@ const resolvers = {
             path: 'ratings',
             populate: { path: 'user', select: 'username' }
           });
-
+    
         return schedules;
       } catch (error) {
         console.error('Error fetching schedules:', error);
         throw new Error('Failed to fetch schedules');
       }
     },
+    
+    
   
 
     getOneSchedule: async (parent, { scheduleId }) => {
@@ -135,7 +137,6 @@ const resolvers = {
         throw new Error('Error fetching schedule.');
       }
     },
-
 
     searchUsers: async (_, { term }) => {
       return User.find({
@@ -199,6 +200,7 @@ const resolvers = {
         throw new Error('Failed to fetch schedules by category');
       }
     },
+    
     
     
     
@@ -352,6 +354,45 @@ const resolvers = {
       }
     },
     
+    addComment: async (parent, { scheduleId, comment }, context) => {
+      if (!context.user) {
+        throw new CustomAuthError('You must be logged in to comment on schedules.');
+      }
+      
+      try {
+        // Correctly creating a new ObjectId instance from the user's ID
+        const userId = new mongoose.Types.ObjectId(context.user._id);
+        
+        const updatedSchedule = await Schedule.findByIdAndUpdate(
+          scheduleId,
+          { 
+            $push: { 
+              comments: {
+                user: userId, 
+                comment: comment,
+                createdAt: new Date()
+              } 
+            }
+          },
+          { new: true }
+        )
+        .populate({
+          path: 'comments.user',
+          select: 'username'
+        });
+    
+        if (!updatedSchedule) {
+          throw new Error('Failed to fetch updated schedule after adding comment');
+        }
+    
+        return updatedSchedule;
+      } catch (error) {
+        console.error(`Error in addComment resolver: ${error}`);
+        throw new Error('Error processing your comment.');
+      }
+    },
+    
+
     
     addSchedule: async (parent, { title, activities, category, tags }, context) => {
       if (!context.user) {
@@ -416,24 +457,30 @@ const resolvers = {
 
     updateSchedule: async (parent, { scheduleId, title, category, tags }, context) => {
       if (!context.user) {
-          throw new CustomAuthError('You must be logged in to update a schedule.');
+        throw new CustomAuthError('You must be logged in to update a schedule.');
       }
-      const update = { title };
+    
+      // Build the update object dynamically
+      const update = { title };  
       if (category) update.category = category;
       if (tags) update.tags = tags;
-  
+    
       return Schedule.findByIdAndUpdate(
-          scheduleId,
-          { $set: update },
-          { new: true }
-      ).populate('activities').populate('comments.user').populate({
-          path: 'ratings',
-          populate: {
-              path: 'user',
-              select: 'username'
-          }
+        scheduleId,
+        { $set: update },
+        { new: true }
+      )
+      .populate('activities')
+      .populate('comments.user')
+      .populate({
+        path: 'ratings',
+        populate: {
+          path: 'user',
+          select: 'username'
+        }
       });
-  },
+    },
+    
 
     deleteSchedule: async (parent, { scheduleId, userId }, context) => {
       if (!context.user) {
@@ -456,7 +503,7 @@ const resolvers = {
       if (!context.user) {
         throw new CustomAuthError('You need to be logged in!');
       }
-
+    
       const { title, description, startTime, endTime, day } = activityData;
       const newActivity = await Activity.create({
         title,
@@ -465,15 +512,20 @@ const resolvers = {
         endTime: new Date(endTime).toISOString(),
         day,
       });
-
-      await Schedule.findByIdAndUpdate(
+    
+      const updatedSchedule = await Schedule.findByIdAndUpdate(
         scheduleId,
         { $push: { activities: newActivity._id } },
         { new: true }
-      );
-
-      return Schedule.findById(scheduleId).populate('activities');
+      ).populate('activities');
+    
+      if (!updatedSchedule) {
+        throw new Error("Schedule not found or update failed");
+      }
+    
+      return updatedSchedule;
     },
+    
 
     removeActivity: async (parent, { activityId }) => {
       const activity = await Activity.findByIdAndDelete(activityId);
@@ -488,27 +540,76 @@ const resolvers = {
       if (!context.user) {
         throw new CustomAuthError('You need to be logged in!');
       }
-
+    
+      // Validate date fields and use existing values if the new ones are invalid
+      const activity = await Activity.findById(activityId);
+      if (!activity) {
+        throw new Error('Activity not found');
+      }
+    
       const updatedActivity = await Activity.findByIdAndUpdate(
         activityId,
         {
           title,
           description,
-          startTime: new Date(startTime).toISOString(),
-          endTime: new Date(endTime).toISOString(),
+          startTime: startTime ? new Date(startTime).toISOString() : activity.startTime,
+          endTime: endTime ? new Date(endTime).toISOString() : activity.endTime,
           day
         },
         { new: true, runValidators: true }
       );
-
-      if (!updatedActivity) {
-        throw new Error('Activity not found');
-      }
-
+    
       return updatedActivity;
+    },
+    
+
+  updateCategory: async (parent, { scheduleId, category }, context) => {
+    if (!context.user) {
+      throw new Error('You must be logged in to update a schedule category.');
     }
+    
+    const updatedSchedule = await Schedule.findByIdAndUpdate(
+      scheduleId,
+      { $set: { category } },  // Update the category field
+      { new: true }
+    ).populate('activities');
+    
+    return updatedSchedule;
   },
-  
+
+  // Update the tags of a schedule
+  updateTags: async (parent, { scheduleId, tags }, context) => {
+    if (!context.user) {
+      throw new Error('You must be logged in to update schedule tags.');
+    }
+
+    const updatedSchedule = await Schedule.findByIdAndUpdate(
+      scheduleId,
+      { $set: { tags } },  // Update the tags field
+      { new: true }
+    ).populate('activities');
+    
+    return updatedSchedule;
+  },
+
+  // Delete a single tag from a schedule
+  deleteTag: async (parent, { scheduleId, tag }, context) => {
+    if (!context.user) {
+      throw new Error('You must be logged in to delete a tag.');
+    }
+
+    const schedule = await Schedule.findById(scheduleId);
+    if (!schedule) {
+      throw new Error('Schedule not found.');
+    }
+
+    // Remove the tag from the schedule's tags array
+    schedule.tags = schedule.tags.filter(t => t !== tag);
+    await schedule.save();
+
+    return schedule;
+  },
+}
 };
 
 module.exports = resolvers;

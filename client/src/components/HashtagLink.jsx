@@ -8,7 +8,7 @@ const HashtagLink = ({ tag }) => {
     // Pass the tag as a query parameter in the URL, ensuring it's encoded properly
     navigate(`/search?searchTerm=${encodeURIComponent(tag)}`);
   };
-
+  
   return (
     <span
       onClick={handleTagClick}
