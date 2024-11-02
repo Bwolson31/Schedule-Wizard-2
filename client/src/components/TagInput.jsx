@@ -9,6 +9,8 @@ const TagInput = ({ tags, setTags }) => {
     };
 
     const handleAddTag = () => {
+        event.preventDefault();
+        
       if (input.trim() !== '') {
           const newTags = input.split(' ').map(tag => tag.trim().startsWith('#') ? tag.trim() : `#${tag.trim()}`);
           setTags(prevTags => [...newTags, ...prevTags]);  // Ensure new tags are added to existing tags

@@ -14,7 +14,7 @@ const HashtagLink = ({ tag }) => {
       onClick={handleTagClick}
       style={{ color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}
     >
-      #{tag}
+      {tag}
     </span>
   );
 };

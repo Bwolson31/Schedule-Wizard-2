@@ -12,7 +12,7 @@ import HashtagLink from '../HashtagLink';
 
 function ScheduleDetail() {
   const { scheduleId } = useParams();
-  const { loading, error, data } = useQuery(GET_ONE_SCHEDULE, {
+  const { loading, error, data, refetch } = useQuery(GET_ONE_SCHEDULE, {
     variables: { scheduleId },
     fetchPolicy: "network-only"
   });
