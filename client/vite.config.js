@@ -25,7 +25,6 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['@stripe/react-stripe-js']
     }
   }
 });
