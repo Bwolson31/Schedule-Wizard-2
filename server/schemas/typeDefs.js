@@ -101,7 +101,7 @@ const typeDefs = `
     users: [User]
     user(username: String!): User
     me(sortBy: SortBy, sortOrder: SortOrder): User
-    getSchedules(category: Category, tags: [String], sortBy: SortBy, sortOrder: SortOrder): [Schedule]  
+    getSchedules(userId: ID, category: Category, tags: [String], sortBy: SortBy, sortOrder: SortOrder): [Schedule]  
     getOneSchedule(scheduleId: ID!): Schedule
     searchUsers(term: String!): [User]
     searchSchedules(query: String!, sortBy: SortBy, sortOrder: SortOrder, category: Category, tags: [String]): [Schedule]

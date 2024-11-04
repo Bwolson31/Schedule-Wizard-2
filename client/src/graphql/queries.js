@@ -76,8 +76,8 @@ query Me($sortBy: SortBy, $sortOrder: SortOrder) {
 // Query to fetch all schedules
 
 export const GET_SCHEDULES = gql`
-query GetSchedules($sortBy: SortBy, $sortOrder: SortOrder) {
-  getSchedules(sortBy: $sortBy, sortOrder: $sortOrder) {
+query GetSchedules($userId: ID, $sortBy: SortBy, $sortOrder: SortOrder) {
+  getSchedules(userId: $userId, sortBy: $sortBy, sortOrder: $sortOrder) {
     _id
     title
     category

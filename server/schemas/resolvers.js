@@ -64,10 +64,14 @@ const resolvers = {
     
     
 
-    getSchedules: async (_, { category, tags, sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
+    getSchedules: async (_, { userId, category, tags, sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
       try {
         const query = {};
-    
+
+        if (userId) {
+          query.creator = userId;
+        }
+
         if (category && category !== 'ALL') {
           query.category = category;
         }

@@ -12,6 +12,7 @@ import './AllSchedules.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 
+
 function AllSchedules({ 
   schedules = [], 
   title, 
@@ -19,7 +20,12 @@ function AllSchedules({
   isEditable = false, 
   onDelete, 
   onEdit,
+  userId,
 }) {
+
+ 
+
+  console.log("User ID from context in AllSchedules:", userId);
 
 
   // State for sorting
@@ -30,11 +36,11 @@ function AllSchedules({
 
   // Fetch schedules with useQuery
   const { loading, error, data, refetch } = useQuery(GET_SCHEDULES, {
-    variables: { category, query: '', tags: [], sortBy, sortOrder },
+    variables: { userId, category: 'ALL', query: '', tags: [], sortBy: 'DateCreated', sortOrder: 'NewestFirst' },
     fetchPolicy: 'network-only',
-    onCompleted: (data) => console.log("Query completed", data),
-    onError: (error) => console.log("Query error", error)
-});
+  });
+  
+  console.log("Schedules data from query:", data);
 
   useEffect(() => {
     refetch({ category, query: '', tags: [], sortBy, sortOrder });
@@ -58,7 +64,7 @@ function AllSchedules({
         sortBy: newSortBy,
         sortOrder: newSortOrder
       });
-      console.log("Refetch triggered with new sort options");
+      console.log("Refetch triggered with new sort options", newSortBy, newSortOrder);
     } else {
       console.error("refetch is not a function, sort change was not applied");
     }

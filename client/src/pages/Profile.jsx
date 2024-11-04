@@ -7,17 +7,33 @@ import AllSchedules from '../components/schedules/AllSchedules';
 import { useProfileHandlers } from '../hooks/useProfileHandlers';
 import EditModal from '../components/schedules/EditModal';  
 import { UPDATE_SCHEDULE } from '../graphql/mutations'; 
+import { useUser } from '../contexts/UserContext';
+
 
 function Profile() {
+  const { currentUser } = useUser(); 
+
+  const userId = currentUser?.data?._id;  
+
+
   const [userProfile, setUserProfile] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
+
+  const [sortBy, setSortBy] = useState('DateCreated');
+  const [sortOrder, setSortOrder] = useState('NewestFirst');
+
+  const handleSortChange = (newSortBy, newSortOrder) => {
+  setSortBy(newSortBy);
+  setSortOrder(newSortOrder);
+};
 
   const [updateSchedule] = useMutation(UPDATE_SCHEDULE);
 
   useEffect(() => {
     if (AuthService.loggedIn()) {
       const profile = AuthService.getProfile();
+      console.log("Fetched profile:", profile);
       setUserProfile(profile);
     }
   }, []);
@@ -76,6 +92,8 @@ function Profile() {
     );
   }
 
+  console.log("User ID from Profile:", userProfile.id);
+
   if (loading) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
@@ -101,13 +119,14 @@ const schedules = userData.schedules || [];
       <Row className="mb-4">
         <Col md={{ span: 8, offset: 2 }}>
           <h2 className="text-center mb-4 text-success">Your Schedules</h2>
+
           {schedules.length === 0 ? (
             <Alert variant="info">You have not created any schedules yet.</Alert>
           ) : (
             
             <>
             <AllSchedules
-              schedules={schedules}
+              userId={userId}
               isEditable={true}
               onDelete={handleDeleteSchedule}
               onEdit={handleEditClick}
@@ -120,6 +139,7 @@ const schedules = userData.schedules || [];
               )}
               onRemoveActivity={handleDeleteActivity}
               refetch={refetch}
+              handleSortChange={handleSortChange}
             />
             {showEditModal && (
               <EditModal
