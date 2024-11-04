@@ -1,21 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { GET_ONE_SCHEDULE } from '../../graphql/queries';
-import { Container, Row, Col, Card } from 'react-bootstrap';
-import RatingForm from './RatingForm';
+import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import StarRating from './StarRating';
 import CommentForm from './CommentForm';
 import UserComment from './UserComment';
 import CategoryLink from '../CategoryLink'; 
 import HashtagLink from '../HashtagLink';   
+import RatingFormModal from './RatingFormModal';
 
-function ScheduleDetail() {
+function ScheduleDetail () {
   const { scheduleId } = useParams();
   const { loading, error, data, refetch } = useQuery(GET_ONE_SCHEDULE, {
     variables: { scheduleId },
     fetchPolicy: "network-only"
   });
+
+  const [show, setShow] = useState(false);
+
 
   useEffect(() => {
   }, [data]);
@@ -61,8 +64,10 @@ function ScheduleDetail() {
                   </ul>
                 </div>
               )}
-              
-              <RatingForm scheduleId={scheduleId} refetch={refetch} />
+            <>
+              <Button variant="primary" onClick={() => setShow(true)}>Rate This Schedule</Button>
+              <RatingFormModal scheduleId={scheduleId} show={show} close={() => setShow(false)}  />
+              </>
               <ul className="list-unstyled">
                 {activities.map(activity => (
                   <li key={activity._id} className="mb-3">

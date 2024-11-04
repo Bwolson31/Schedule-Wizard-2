@@ -121,21 +121,18 @@ const schedules = userData.schedules || [];
               onRemoveActivity={handleDeleteActivity}
               refetch={refetch}
             />
-
-{showEditModal && (
-  <EditModal
-    show={showEditModal}
-    onHide={handleModalClose}
-    target={editTarget}
-    onSave={handleSave}
-    onDelete={handleDeleteSchedule}
-    onAddActivity={handleAddActivity} // This comes from useProfileHandlers now
-    onUpdateActivity={handleUpdateActivity}
-    onRemoveActivity={handleDeleteActivity}    
-  />
-)}
-
-
+            {showEditModal && (
+              <EditModal
+                show={showEditModal}
+                onHide={handleModalClose}
+                target={editTarget}
+                onSave={handleSave}
+                onDelete={handleDeleteSchedule}
+                onAddActivity={handleAddActivity} 
+                onUpdateActivity={handleUpdateActivity}
+                onRemoveActivity={handleDeleteActivity}    
+              />
+            )}
             </>
           )}
         </Col>
