@@ -67,11 +67,11 @@ const resolvers = {
     getSchedules: async (_, { userId, category, tags, sortBy = 'DateCreated', sortOrder = 'NewestFirst' }) => {
       try {
         const query = {};
-
+    
         if (userId) {
           query.creator = userId;
         }
-
+    
         if (category && category !== 'ALL') {
           query.category = category;
         }
@@ -113,6 +113,8 @@ const resolvers = {
         throw new Error('Failed to fetch schedules');
       }
     },
+    
+    
     
     
   
@@ -190,7 +192,7 @@ const resolvers = {
     
     fetchSchedulesByCategory: async (_, { category }) => {
       const filterQuery = {};
-
+ 
       // Add category to query if provided
       if (category && category !== 'ALL') {
         filterQuery.category = category;
@@ -219,31 +221,87 @@ const resolvers = {
       return rating;
     },
 
-    getRatedSchedules: async (parent, { sortBy, sortOrder }, context) => {
+    getRatedSchedules: async (parent, { sortBy = 'DateCreated', sortOrder = 'NewestFirst' }, context) => {
       if (!context.user) {
         throw new CustomAuthError('You must be logged in to perform this action.');
       }
-
-      let sort = {};
-      if (sortBy && sortOrder) {
-        const sortField = sortBy === 'CREATED_AT' ? 'createdAt' : sortBy.toLowerCase();
-        sort[sortField] = sortOrder === 'ASC' ? 1 : -1;
+    
+      try {
+        console.log('Received sortBy:', sortBy, 'sortOrder:', sortOrder);
+    
+        const query = {
+          user: context.user._id, // Only get ratings by the current user
+        };
+    
+        const sortFieldMap = {
+          DateCreated: 'createdAt',
+          DateUpdated: 'updatedAt',
+          Title: 'title',
+          Popularity: 'averageRating',
+        };
+    
+        const sortOrderMap = {
+          NewestFirst: -1,
+          OldestFirst: 1,
+          Descending: -1,
+          Ascending: 1
+        };
+    
+        const sortField = sortFieldMap[sortBy];
+        const order = sortOrderMap[sortOrder];
+    
+        if (!sortField) {
+          throw new Error('Invalid sortBy value');
+        }
+    
+        // Sort schedules by the chosen field and order
+        const schedules = await Schedule.find({
+          _id: { $in: (await Rating.find({ user: context.user._id }).distinct('schedule')) }, // Only fetch schedules that the user has rated
+        })
+          .sort({ [sortField]: order })  // Apply sorting here
+          .populate('activities')
+          .populate('comments.user')
+          .populate({
+            path: 'ratings',
+            match: { user: context.user._id },  // Only fetch ratings for the current user
+            populate: { path: 'user', select: 'username' }
+          });
+    
+        console.log("Fetched schedules with ratings:", schedules);
+    
+        if (!schedules || schedules.length === 0) {
+          console.log("No rated schedules found");
+          return [];
+        }
+    
+        // Map the schedules with their ratings and return them
+        const result = schedules.map(schedule => ({
+          _id: schedule._id,
+          title: schedule.title,
+          tags: schedule.tags,
+          activities: schedule.activities,
+          comments: schedule.comments,
+          averageRating: schedule.averageRating,
+          createdAt: schedule.createdAt,
+          updatedAt: schedule.updatedAt,
+          rating: schedule.ratings.length > 0 ? schedule.ratings[0].rating : 0, // Assuming one rating per schedule
+        }));
+    
+        console.log("getRatedSchedules result:", result);
+    
+        return result;
+      } catch (error) {
+        console.error('Error fetching rated schedules:', error);
+        throw new Error('Failed to fetch rated schedules');
       }
-
-      const ratings = await Rating.find({ user: context.user._id }).populate({
-        path: 'schedule',
-        populate: {
-          path: 'activities',
-          model: 'Activity',
-        },
-      }).sort(sort);
-
-      return ratings.map(rating => ({
-        schedule: rating.schedule,
-        rating: rating.rating,
-      }));
     },
-  },
+    
+    
+    
+  },    
+    
+
+
 
   Mutation: {
     addUser: async (parent, { username, email, password }) => {

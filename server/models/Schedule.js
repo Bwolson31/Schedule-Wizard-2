@@ -33,7 +33,11 @@ category: {
   enum: ['EXERCISE', 'NUTRITION', 'WORK_PRODUCTIVITY', 'HOBBIES_CRAFTS', 'EDUCATION', 'HOMELIFE', 'SOCIAL_LIFE', 'MINDFULNESS', 'GENERAL', 'ALL'],
   default: 'GENERAL',
 },
-tags: [String],
+tags: {
+type: [String],
+default: [],
+},
+
 creator: {
   type: Schema.Types.ObjectId,
   ref: 'User',

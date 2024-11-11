@@ -17,7 +17,7 @@ const typeDefs = `
     ratingCount: Int
     averageRating: Float
     category: Category!
-    tags: [String]
+    tags: [String]!
   }
 
   type Activity {
@@ -57,10 +57,17 @@ const typeDefs = `
   }
 
   type RatedSchedule {
-    schedule: Schedule!
-    rating: Int!
+    _id: ID!
+    title: String
+    tags: [String]
+    activities: [Activity]
     comments: [Comment]
+    averageRating: Float
+    createdAt: String
+    updatedAt: String
+    rating: Int
   }
+  
 
   type SessionResponse {
     sessionId: String

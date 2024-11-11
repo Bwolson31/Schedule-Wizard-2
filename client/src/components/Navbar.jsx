@@ -36,6 +36,7 @@ const Navbar = () => {
             {/* Links based on authentication */}
             {Auth.loggedIn() ? (
               <>
+                <Nav.Link as={Link} to='/rated-schedules'>Rated Schedules</Nav.Link>
                 <Nav.Link as={Link} to='/profile/'>Profile</Nav.Link>
                 <Nav.Link as={Link} to="/create-schedule">Create Schedule</Nav.Link>
                 <Button variant="outline-light" onClick={Auth.logout} className="logout-btn">Logout</Button>

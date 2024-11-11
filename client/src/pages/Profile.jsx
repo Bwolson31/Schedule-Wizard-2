@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, {useState} from 'react';
 import { useQuery, useMutation } from '@apollo/client';  
-import { Container, Row, Col, Alert } from 'react-bootstrap';
-import { ME } from '../graphql/queries';
+import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { GET_SCHEDULES } from '../graphql/queries';
 import AuthService from '../auth/auth.js';
 import AllSchedules from '../components/schedules/AllSchedules';
 import { useProfileHandlers } from '../hooks/useProfileHandlers';
@@ -9,38 +9,20 @@ import EditModal from '../components/schedules/EditModal';
 import { UPDATE_SCHEDULE } from '../graphql/mutations'; 
 import { useUser } from '../contexts/UserContext';
 
-
 function Profile() {
   const { currentUser } = useUser(); 
-
   const userId = currentUser?.data?._id;  
 
-
-  const [userProfile, setUserProfile] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
 
-  const [sortBy, setSortBy] = useState('DateCreated');
-  const [sortOrder, setSortOrder] = useState('NewestFirst');
-
-  const handleSortChange = (newSortBy, newSortOrder) => {
-  setSortBy(newSortBy);
-  setSortOrder(newSortOrder);
-};
+  const { loading, error, data, refetch } = useQuery(GET_SCHEDULES, {
+    variables: { userId, sortBy: 'DateCreated', sortOrder: 'NewestFirst' },
+    fetchPolicy: 'network-only',
+    skip: !userId, // Skip query if userId is not available
+  });
 
   const [updateSchedule] = useMutation(UPDATE_SCHEDULE);
-
-  useEffect(() => {
-    if (AuthService.loggedIn()) {
-      const profile = AuthService.getProfile();
-      console.log("Fetched profile:", profile);
-      setUserProfile(profile);
-    }
-  }, []);
-
-  const { loading, error, data, refetch } = useQuery(ME, {
-    skip: !userProfile,  // Ensure userProfile is initialized
-  });
 
   // Use hook to get handlers
   const { handleDeleteSchedule, handleAddActivity, handleDeleteActivity, handleUpdateActivity } = useProfileHandlers(refetch);
@@ -65,39 +47,31 @@ function Profile() {
         variables: {
           scheduleId,
           title: updatedData.title,
-          category: updatedData.category || null,  // Set category to null if not provided
-          tags: updatedData.tags || [],            // Set tags to an empty array if not provided
+          category: updatedData.category || null,
+          tags: updatedData.tags || [],
         },
       });
   
       console.log('Schedule updated successfully:', result);
       refetch(); // Refetch the schedules after update
-      setShowEditModal(false);  // Close the modal after saving
+      setShowEditModal(false);
     } catch (error) {
       console.error('Error updating schedule:', error);
     }
   };
-  
+
   // Handle modal close
   const handleModalClose = () => {
     setShowEditModal(false);
-    setEditTarget(null);  // Clear the edit target when modal closes
+    setEditTarget(null);
   };
-
-  if (!userProfile) {
-    return (
-      <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        Please log in to view your profile.
-      </Container>
-    );
-  }
-
-  console.log("User ID from Profile:", userProfile.id);
 
   if (loading) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        Loading...
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading schedules...</span>
+        </Spinner>
       </Container>
     );
   }
@@ -105,14 +79,13 @@ function Profile() {
   if (error) {
     return (
       <Container className="mt-5">
-        <Alert variant="danger">Error: {error.message}</Alert>
+        <Alert variant="danger">Error loading schedules: {error.message}</Alert>
       </Container>
     );
   }
 
-// Extract schedules
-const userData = data?.me || {};
-const schedules = userData.schedules || [];
+  // Extract schedules from query data
+  const schedules = data ? data.getSchedules : [];
 
   return (
     <Container className="mt-5">
@@ -123,36 +96,27 @@ const schedules = userData.schedules || [];
           {schedules.length === 0 ? (
             <Alert variant="info">You have not created any schedules yet.</Alert>
           ) : (
-            
             <>
-            <AllSchedules
-              userId={userId}
-              isEditable={true}
-              onDelete={handleDeleteSchedule}
-              onEdit={handleEditClick}
-              onUpdateActivity={(activityId, activityData) => handleUpdateActivity(
-                activityId,
-                activityData.title || 'Untitled Activity', // Fallback to a default if title is empty
-                activityData.description,
-                activityData.startTime,
-                activityData.endTime
-              )}
-              onRemoveActivity={handleDeleteActivity}
-              refetch={refetch}
-              handleSortChange={handleSortChange}
-            />
-            {showEditModal && (
-              <EditModal
-                show={showEditModal}
-                onHide={handleModalClose}
-                target={editTarget}
-                onSave={handleSave}
+              <AllSchedules
+                schedules={schedules}
+                title="Your Schedules"
+                isEditable={true}
+                refetch={refetch}
+                onEdit={handleEditClick}
                 onDelete={handleDeleteSchedule}
-                onAddActivity={handleAddActivity} 
-                onUpdateActivity={handleUpdateActivity}
-                onRemoveActivity={handleDeleteActivity}    
               />
-            )}
+              {showEditModal && (
+                <EditModal
+                  show={showEditModal}
+                  onHide={handleModalClose}
+                  target={editTarget}
+                  onSave={handleSave}
+                  onDelete={handleDeleteSchedule}
+                  onAddActivity={handleAddActivity}
+                  onUpdateActivity={handleUpdateActivity}
+                  onRemoveActivity={handleDeleteActivity}
+                />
+              )}
             </>
           )}
         </Col>

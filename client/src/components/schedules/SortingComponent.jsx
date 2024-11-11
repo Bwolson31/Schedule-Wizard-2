@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dropdown, DropdownButton } from 'react-bootstrap';
 
 const sortFields = {
@@ -28,38 +28,52 @@ const orderTypes = {
 };
 
 function SortingComponent({ sortBy, sortOrder, onSortChange }) {
+  const [currentSortBy, setCurrentSortBy] = useState(sortBy || 'DateCreated');
+  const [currentSortOrder, setCurrentSortOrder] = useState(sortOrder || 'NewestFirst');
+
+  useEffect(() => {
+    console.log('Props changed in SortingComponent:', { sortBy, sortOrder });
+    setCurrentSortBy(sortBy || 'DateCreated');
+    setCurrentSortOrder(sortOrder || 'NewestFirst');
+  }, [sortBy, sortOrder]);
+
   const handleSortChange = (newSortBy) => {
-    const firstSortOrder = Object.keys(orderTypes[newSortBy])[0]; // Default to the first order available for the new field
+    const firstSortOrder = orderTypes[newSortBy] ? Object.keys(orderTypes[newSortBy])[0] : 'NewestFirst';
+    console.log('handleSortChange called:', { newSortBy, firstSortOrder });
+    setCurrentSortBy(newSortBy);
+    setCurrentSortOrder(firstSortOrder);
     onSortChange(newSortBy, firstSortOrder);
-};
-
-
-  const handleOrderChange = (newSortOrder) => {
-    onSortChange(sortBy, newSortOrder);
   };
 
-  // Ensure the sortOrder is valid to avoid rendering 'undefined'
-  const currentSortOrderTitle = orderTypes[sortBy] && orderTypes[sortBy][sortOrder] ? orderTypes[sortBy][sortOrder] : 'Select Order';
-
-
+  const handleOrderChange = (newSortOrder) => {
+    console.log('handleOrderChange called:', { newSortOrder });
+    setCurrentSortOrder(newSortOrder);
+    onSortChange(currentSortBy, newSortOrder);
+  };
 
   return (
     <div className="sorting-component">
-      <DropdownButton id="sort-by" title={`Sort by: ${sortFields[sortBy]}`} className="mb-3">
+      <DropdownButton id="sort-by" title={`Sort by: ${sortFields[currentSortBy]}`} className="mb-3">
         {Object.keys(sortFields).map(key => (
-          <Dropdown.Item key={key} onClick={() => handleSortChange(key)}>
+          <Dropdown.Item key={key} active={key === currentSortBy} onClick={() => handleSortChange(key)}>
             {sortFields[key]}
           </Dropdown.Item>
         ))}
       </DropdownButton>
-      
-      <DropdownButton id="sort-order" title={`Order: ${currentSortOrderTitle}`} className="mb-3">
-        {orderTypes[sortBy] && Object.keys(orderTypes[sortBy]).map(orderKey => (
-          <Dropdown.Item key={orderKey} onClick={() => handleOrderChange(orderKey)}>
-            {orderTypes[sortBy][orderKey]}
-          </Dropdown.Item>
-        ))}
-      </DropdownButton>
+
+      {orderTypes[currentSortBy] ? (
+        <DropdownButton id="sort-order" title={`Order: ${orderTypes[currentSortBy][currentSortOrder]}`} className="mb-3">
+          {Object.keys(orderTypes[currentSortBy]).map(orderKey => (
+            <Dropdown.Item key={orderKey} active={orderKey === currentSortOrder} onClick={() => handleOrderChange(orderKey)}>
+              {orderTypes[currentSortBy][orderKey]}
+            </Dropdown.Item>
+          ))}
+        </DropdownButton>
+      ) : (
+        <DropdownButton id="sort-order" title="Order: N/A" className="mb-3" disabled>
+          <Dropdown.Item>N/A</Dropdown.Item>
+        </DropdownButton>
+      )}
     </div>
   );
 }

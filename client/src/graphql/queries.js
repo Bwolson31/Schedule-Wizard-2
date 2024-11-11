@@ -190,20 +190,29 @@ query SearchSchedules($query: String!, $category: Category, $tags: [String], $so
 
 // Query to fetch rated schedules
 export const GET_RATED_SCHEDULES = gql`
-  query GetRatedSchedules($sortBy: SortBy, $sortOrder: SortOrder) {
-    getRatedSchedules(sortBy: $sortBy, sortOrder: $sortOrder) {
-      schedule {
-        _id
-        title
-        createdAt
-        activities {
-          _id
-          title
-        }
-      }
-      rating
+query GetRatedSchedules($sortBy: SortBy, $sortOrder: SortOrder) {
+  getRatedSchedules(sortBy: $sortBy, sortOrder: $sortOrder) {
+    _id
+    title
+    tags
+    averageRating
+    activities {
+      _id
+      title
     }
+    comments {
+      user {
+        _id
+        username
+      }
+      comment
+      createdAt
+    }
+    createdAt
+    updatedAt
+    rating
   }
+}
 `;
 
 export const FETCH_SCHEDULES_BY_CATEGORY = gql`
