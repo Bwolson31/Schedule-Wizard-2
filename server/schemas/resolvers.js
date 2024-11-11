@@ -278,6 +278,7 @@ const resolvers = {
         const result = schedules.map(schedule => ({
           _id: schedule._id,
           title: schedule.title,
+          category: schedule.category,
           tags: schedule.tags,
           activities: schedule.activities,
           comments: schedule.comments,

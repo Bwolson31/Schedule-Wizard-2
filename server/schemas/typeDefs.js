@@ -66,6 +66,7 @@ const typeDefs = `
     createdAt: String
     updatedAt: String
     rating: Int
+    category: Category!
   }
   
 

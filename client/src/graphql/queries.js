@@ -195,6 +195,7 @@ query GetRatedSchedules($sortBy: SortBy, $sortOrder: SortOrder) {
     _id
     title
     tags
+    category
     averageRating
     activities {
       _id

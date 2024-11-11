@@ -39,7 +39,7 @@ function RatedSchedules() {
     );
   }
 
-  // Use the simpler version if it works consistently
+
   const ratedSchedules = data?.getRatedSchedules || [];
 
   console.log('Updated ratedSchedules:', ratedSchedules);
