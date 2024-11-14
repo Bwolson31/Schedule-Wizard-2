@@ -91,7 +91,6 @@ function Profile() {
     <Container className="mt-5">
       <Row className="mb-4">
         <Col md={{ span: 8, offset: 2 }}>
-          <h2 className="text-center mb-4 text-success">Your Schedules</h2>
 
           {schedules.length === 0 ? (
             <Alert variant="info">You have not created any schedules yet.</Alert>
